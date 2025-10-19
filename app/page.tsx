@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Sparkles, Users, Zap } from "lucide-react"
+import { ArrowRight, Sparkles, Users, Leaf, Palette, Award } from "lucide-react"
 import Link from "next/link"
 import { TestimonialsSection } from "@/components/testimonials-section"
 
@@ -22,6 +22,9 @@ export default function Home() {
               </Link>
               <Link href="#testimonials" className="text-sm text-muted-foreground hover:text-foreground transition">
                 Testimonials
+              </Link>
+              <Link href="/creators" className="text-sm text-muted-foreground hover:text-foreground transition">
+                For Creators
               </Link>
               <Link href="#quiz" className="text-sm text-muted-foreground hover:text-foreground transition">
                 Shop
@@ -54,12 +57,12 @@ export default function Home() {
 
               <p className="text-lg text-muted-foreground leading-relaxed max-w-lg">
                 Stop blending in. Discover AI-curated clothing that matches your unique taste, body type, and
-                personality. Every piece tells your story.
+                personality. Every piece tells your story—and supports African creators.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button size="lg" asChild className="gap-2">
-                  <Link href="#quiz">
+                  <Link href="/quiz">
                     Start Your Style Quiz
                     <ArrowRight className="h-4 w-4" />
                   </Link>
@@ -101,33 +104,37 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Blue Ocean Features Section */}
       <section id="features" className="px-4 py-20 sm:px-6 lg:px-8 bg-card/50">
         <div className="mx-auto max-w-7xl">
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Why Choose StyleAI?</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">Why StyleAI is Different</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Designed for the trendsetter who refuses to blend in
+              We're not just another fashion app. We're building a movement.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
                 icon: Sparkles,
                 title: "AI-Powered Curation",
-                description:
-                  "Our AI learns your style, body type, and preferences to recommend pieces you'll actually love.",
+                description: "Trained on African body types and aesthetics for recommendations that actually fit.",
               },
               {
-                icon: Zap,
-                title: "Save Time & Money",
-                description: "No more endless scrolling. Get personalized recommendations in seconds, not hours.",
+                icon: Leaf,
+                title: "Circular Fashion",
+                description: "Trade in old pieces, buy pre-owned, and track your environmental impact.",
               },
               {
                 icon: Users,
-                title: "Authentic Community",
-                description: "Connect with like-minded trendsetters and share your unique style journey.",
+                title: "Creator Economy",
+                description: "Support African designers directly. Vote on collections. Own your style.",
+              },
+              {
+                icon: Award,
+                title: "Verified Sustainability",
+                description: "Transparent supply chain. Know exactly where your clothes come from.",
               },
             ].map((feature, i) => {
               const Icon = feature.icon
@@ -137,7 +144,7 @@ export default function Home() {
                     <Icon className="h-6 w-6 text-accent" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </div>
               )
             })}
@@ -147,6 +154,47 @@ export default function Home() {
 
       {/* Testimonials Section */}
       <TestimonialsSection />
+
+      {/* Creator & Sustainability CTA */}
+      <section className="px-4 py-20 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid md:grid-cols-2 gap-8">
+            {/* Creator CTA */}
+            <div className="rounded-2xl border border-border bg-gradient-to-br from-accent/10 to-accent/5 p-8 sm:p-12">
+              <div className="flex items-center gap-3 mb-4">
+                <Palette className="h-6 w-6 text-accent" />
+                <h3 className="text-2xl font-bold text-foreground">For Creators</h3>
+              </div>
+              <p className="text-muted-foreground mb-6">
+                Design collections, get community feedback, and earn 40-50% revenue share. Your designs, your rules.
+              </p>
+              <Button asChild className="gap-2">
+                <Link href="/creators">
+                  Join Our Creator Network
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+
+            {/* Sustainability CTA */}
+            <div className="rounded-2xl border border-border bg-gradient-to-br from-green-500/10 to-green-500/5 p-8 sm:p-12">
+              <div className="flex items-center gap-3 mb-4">
+                <Leaf className="h-6 w-6 text-green-600" />
+                <h3 className="text-2xl font-bold text-foreground">Circular Fashion</h3>
+              </div>
+              <p className="text-muted-foreground mb-6">
+                Trade in pieces you've outgrown, buy authenticated pre-owned items, and track your environmental impact.
+              </p>
+              <Button asChild variant="outline" className="gap-2 bg-transparent">
+                <Link href="/circular">
+                  Learn About Circular Fashion
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* CTA Section */}
       <section id="quiz" className="px-4 py-20 sm:px-6 lg:px-8">
@@ -177,7 +225,7 @@ export default function Home() {
                 </div>
                 <span className="font-bold text-foreground">StyleAI</span>
               </div>
-              <p className="text-sm text-muted-foreground">Your style, amplified.</p>
+              <p className="text-sm text-muted-foreground">Your style, amplified. Supporting African creators.</p>
             </div>
             <div>
               <h4 className="font-semibold text-foreground mb-4">Product</h4>
@@ -188,13 +236,13 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-foreground transition">
-                    Pricing
+                  <Link href="/shop" className="hover:text-foreground transition">
+                    Shop
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-foreground transition">
-                    Shop
+                  <Link href="/creators" className="hover:text-foreground transition">
+                    For Creators
                   </Link>
                 </li>
               </ul>
@@ -213,8 +261,8 @@ export default function Home() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="#" className="hover:text-foreground transition">
-                    Contact
+                  <Link href="/circular" className="hover:text-foreground transition">
+                    Sustainability
                   </Link>
                 </li>
               </ul>

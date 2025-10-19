@@ -14,6 +14,8 @@ import {
   TrendingUp,
   User,
   Edit2,
+  Leaf,
+  RotateCcw,
 } from "lucide-react"
 import Link from "next/link"
 
@@ -86,9 +88,9 @@ const mockFavorites: Favorite[] = [
 ]
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "favorites" | "profile">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "favorites" | "profile" | "circular">("overview")
   const [isEditingProfile, setIsEditingProfile] = useState(false)
-  const number = 0 // Declare the variable to fix the lint error
+  const number = 0
 
   const totalSpent = mockOrders.reduce((sum, order) => sum + order.total, number)
   const totalOrders = mockOrders.length
@@ -139,6 +141,7 @@ export default function DashboardPage() {
                   { id: "overview", label: "Overview", icon: TrendingUp },
                   { id: "orders", label: "Orders", icon: Package },
                   { id: "favorites", label: "Favorites", icon: Heart },
+                  { id: "circular", label: "Circular Fashion", icon: RotateCcw },
                   { id: "profile", label: "Profile", icon: Settings },
                 ].map((item) => {
                   const Icon = item.icon
@@ -326,6 +329,64 @@ export default function DashboardPage() {
                     </Card>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Circular Fashion Tab */}
+            {activeTab === "circular" && (
+              <div className="space-y-8">
+                <div>
+                  <h2 className="text-2xl font-bold text-foreground mb-6">Your Circular Fashion Journey</h2>
+                  <div className="grid md:grid-cols-3 gap-4 mb-8">
+                    <Card className="p-6 border-green-500/50 bg-green-500/5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Items Traded</p>
+                          <p className="text-2xl font-bold text-foreground">8</p>
+                        </div>
+                        <RotateCcw className="h-8 w-8 text-green-600/50" />
+                      </div>
+                    </Card>
+                    <Card className="p-6 border-green-500/50 bg-green-500/5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">CO₂ Saved (kg)</p>
+                          <p className="text-2xl font-bold text-foreground">24</p>
+                        </div>
+                        <Leaf className="h-8 w-8 text-green-600/50" />
+                      </div>
+                    </Card>
+                    <Card className="p-6 border-green-500/50 bg-green-500/5">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-1">Water Saved (L)</p>
+                          <p className="text-2xl font-bold text-foreground">1,920</p>
+                        </div>
+                        <Sparkles className="h-8 w-8 text-green-600/50" />
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+
+                <Card className="p-6">
+                  <h3 className="font-semibold text-foreground mb-4">Trade In Items</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Send us pieces you've outgrown. We'll authenticate, clean, and resell them. You get store credit!
+                  </p>
+                  <Button asChild>
+                    <Link href="/circular">Start Trading In</Link>
+                  </Button>
+                </Card>
+
+                <Card className="p-6">
+                  <h3 className="font-semibold text-foreground mb-4">Buy Pre-Owned</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Browse authenticated pre-owned pieces at 30-50% off original prices.
+                  </p>
+                  <Button variant="outline" asChild className="bg-transparent">
+                    <Link href="/circular">Shop Pre-Owned</Link>
+                  </Button>
+                </Card>
               </div>
             )}
 
