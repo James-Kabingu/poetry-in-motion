@@ -1,0 +1,61 @@
+{
+  "name": "StyleAI - AI-Powered Personal Fashion Styling",
+  "short_name": "StyleAI",
+  "description": "Discover AI-curated clothing that matches your unique style. Stop blending in, start standing out.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#a855f7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-2.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Start Style Quiz",
+      "short_name": "Quiz",
+      "description": "Begin your personalized style quiz",
+      "url": "/quiz",
+      "icons": [{ "src": "/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Shop",
+      "short_name": "Shop",
+      "description": "Browse our collection",
+      "url": "/shop",
+      "icons": [{ "src": "/icon-96.png", "sizes": "96x96" }]
+    }
+  ]
+}
