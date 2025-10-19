@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles, Users, Leaf, Palette, Award } from "lucide-react"
 import Link from "next/link"
 import { TestimonialsSection } from "@/components/testimonials-section"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function Home() {
   return (
@@ -30,9 +31,12 @@ export default function Home() {
                 Shop
               </Link>
             </div>
-            <Button asChild>
-              <Link href="#quiz">Get Started</Link>
-            </Button>
+            <div className="flex items-center gap-4">
+              <ThemeToggle />
+              <Button asChild>
+                <Link href="#quiz">Get Started</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
