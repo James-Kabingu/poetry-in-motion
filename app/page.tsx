@@ -3,7 +3,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { ArrowRight, Sparkles, Users, Leaf, ShoppingBag, ShoppingCart, Search, Heart, Menu, User } from "lucide-react"
+import { ArrowRight, Sparkles, Users, Leaf, ShoppingBag, ShoppingCart, Search, Camera, Heart, Menu, User } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
 import { useCart } from "@/lib/cart-context"
 
@@ -64,6 +64,9 @@ export default function Home() {
               <ThemeToggle />
               <Link href="/search" className="p-2 rounded-full hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition">
                 <Search className="h-4 w-4 text-[#6b5744] dark:text-[#a89070]" />
+              </Link>
+              <Link href="/search?mode=image" title="Search by image" className="p-2 rounded-full hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition">
+                <Camera className="h-4 w-4 text-[#6b5744] dark:text-[#a89070]" />
               </Link>
               <Link href="/cart" className="relative p-2 rounded-full hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition">
                 <ShoppingCart className="h-4 w-4 text-[#6b5744] dark:text-[#a89070]" />
