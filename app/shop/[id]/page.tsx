@@ -1,133 +1,31 @@
 "use client"
 
-import { useState } from "react"
+import { use, useState } from "react"
 import { useCart } from "@/lib/cart-context"
+import { getProductById, products } from "@/lib/products"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Heart, ShoppingBag, Sparkles, Star, Truck, RotateCcw, Shield, ShoppingCart } from "lucide-react"
 import Link from "next/link"
-
-interface ProductDetail {
-  id: string
-  name: string
-  price: number
-  image: string
-  images: string[]
-  rating: number
-  reviews: number
-  category: string
-  colors: string[]
-  sizes: string[]
-  description: string
-  aiInsight: string
-  inStock: boolean
-}
-
-const productDetails: Record<string, ProductDetail> = {
-  "1": {
-    id: "1",
-    name: "Oversized Blazer",
-    price: 65,
-    image: "/images/banners/shopping.png",
-    images: ["/images/banners/shopping.png", "/images/banners/hero.png"],
-    rating: 4.8,
-    reviews: 124,
-    category: "Outerwear",
-    colors: ["Black", "Navy", "Camel"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    description: "Elevate your wardrobe with this timeless oversized blazer. Perfect for layering or wearing solo, this piece transitions seamlessly from office to evening. The relaxed fit flatters all body types while maintaining a polished silhouette.",
-    aiInsight: "Based on your style preferences, this blazer matches your minimalist aesthetic while adding dimension to your wardrobe. The neutral colors work with 87% of your preferred color palette.",
-    inStock: true,
-  },
-  "2": {
-    id: "2",
-    name: "Vintage Denim",
-    price: 55,
-    image: "/images/banners/hero.png",
-    images: ["/images/banners/hero.png"],
-    rating: 4.9,
-    reviews: 89,
-    category: "Bottoms",
-    colors: ["Light Blue", "Dark Blue", "Black"],
-    sizes: ["24", "25", "26", "27", "28", "29", "30"],
-    description: "Classic vintage-inspired denim that never goes out of style. Crafted from premium denim with a perfect fit, these jeans are designed to become your go-to everyday essential.",
-    aiInsight: "Perfect for your casual/everyday occasions. The classic silhouette complements your style preferences and works with 92% of your wardrobe.",
-    inStock: true,
-  },
-  "3": {
-    id: "3",
-    name: "Minimalist Tee",
-    price: 28,
-    image: "/images/banners/shopping.png",
-    images: ["/images/banners/shopping.png"],
-    rating: 4.7,
-    reviews: 156,
-    category: "Tops",
-    colors: ["White", "Black", "Gray", "Cream"],
-    sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-    description: "The perfect everyday tee. Clean lines, premium cotton, and a fit that works for everyone.",
-    aiInsight: "A wardrobe essential that pairs with everything you own. High versatility score.",
-    inStock: true,
-  },
-  "4": {
-    id: "4",
-    name: "Statement Jacket",
-    price: 85,
-    image: "/images/banners/community.png",
-    images: ["/images/banners/community.png"],
-    rating: 4.9,
-    reviews: 67,
-    category: "Outerwear",
-    colors: ["Red", "Black", "Burgundy"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    description: "Make your entrance count. This statement jacket is designed to turn heads and start conversations.",
-    aiInsight: "Bold choice that aligns with your taste for standout pieces. Pairs well with neutrals.",
-    inStock: true,
-  },
-  "5": {
-    id: "5",
-    name: "Tailored Trousers",
-    price: 72,
-    image: "/images/banners/hero.png",
-    images: ["/images/banners/hero.png"],
-    rating: 4.8,
-    reviews: 98,
-    category: "Bottoms",
-    colors: ["Black", "Navy", "Gray", "Beige"],
-    sizes: ["24", "25", "26", "27", "28", "29", "30"],
-    description: "Sharp, structured, and endlessly versatile. These tailored trousers work from boardroom to brunch.",
-    aiInsight: "High compatibility with your existing wardrobe. Professional and smart-casual ready.",
-    inStock: true,
-  },
-  "6": {
-    id: "6",
-    name: "Silk Camisole",
-    price: 45,
-    image: "/images/banners/shopping.png",
-    images: ["/images/banners/shopping.png"],
-    rating: 4.6,
-    reviews: 112,
-    category: "Tops",
-    colors: ["Champagne", "Black", "Blush", "Emerald"],
-    sizes: ["XS", "S", "M", "L", "XL"],
-    description: "Effortless elegance in silk. Layer it or wear it alone — this camisole does both beautifully.",
-    aiInsight: "Versatile piece that elevates both casual and formal looks in your wardrobe.",
-    inStock: true,
-  },
-}
 
 const colorMap: Record<string, string> = {
   Black: "#000", White: "#fff", Navy: "#001f3f", Camel: "#c19a6b",
   Gray: "#808080", Cream: "#fffdd0", Red: "#ff0000", Burgundy: "#800020",
   "Light Blue": "#add8e6", "Dark Blue": "#00008b", Champagne: "#f7e7ce",
-  Blush: "#ffc0cb", Emerald: "#50c878", Beige: "#f5f5dc",
+  Blush: "#ffc0cb", Emerald: "#50c878", Beige: "#f5f5dc", Olive: "#708238",
+  Natural: "#e8dcc4", Brown: "#6f4e37", Tan: "#d2b48c",
 }
 
-export default function ProductDetailPage({ params }: { params: { id: string } }) {
-  const product = productDetails[params.id] || productDetails["1"]
+export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const product = getProductById(id) || products[0]
   const { addItem, totalItems } = useCart()
 
-  const [selectedColor, setSelectedColor] = useState(product.colors[0])
-  const [selectedSize, setSelectedSize] = useState(product.sizes[0])
+  const colors = product.colors ?? ["Default"]
+  const sizes = product.sizes ?? ["One Size"]
+  const images = product.images ?? [product.image]
+
+  const [selectedColor, setSelectedColor] = useState(colors[0])
+  const [selectedSize, setSelectedSize] = useState(sizes[0])
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
@@ -176,14 +74,14 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           <div className="space-y-4">
             <div className="relative overflow-hidden rounded-xl bg-muted aspect-square lg:aspect-auto lg:h-[520px]">
               <img
-                src={product.images[selectedImage] || "/placeholder.svg"}
+                src={images[selectedImage] || "/placeholder.svg"}
                 alt={product.name}
                 className="w-full h-full object-cover"
               />
             </div>
-            {product.images.length > 1 && (
+            {images.length > 1 && (
               <div className="grid grid-cols-4 gap-3">
-                {product.images.map((img, i) => (
+                {images.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setSelectedImage(i)}
@@ -201,6 +99,9 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
           {/* Details */}
           <div className="space-y-6">
             <div>
+              {product.creator && (
+                <p className="text-sm text-accent font-medium mb-1">{product.creator}</p>
+              )}
               <p className="text-sm text-muted-foreground mb-1">{product.category}</p>
               <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">{product.name}</h1>
               <div className="flex items-center gap-4 mb-4">
@@ -211,25 +112,29 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 </div>
                 <span className="text-sm text-muted-foreground">{product.rating} ({product.reviews} reviews)</span>
               </div>
-              <div className="text-3xl font-bold text-foreground">${product.price}</div>
+              <div className="text-3xl font-bold text-foreground">${product.price.toFixed(2)}</div>
             </div>
 
             {/* AI Insight */}
-            <div className="p-4 rounded-lg border border-accent/30 bg-accent/5">
-              <div className="flex gap-3">
-                <Sparkles className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-semibold text-foreground mb-1 text-sm">AI Insight</p>
-                  <p className="text-sm text-muted-foreground">{product.aiInsight}</p>
+            {product.aiInsight && (
+              <div className="p-4 rounded-lg border border-accent/30 bg-accent/5">
+                <div className="flex gap-3">
+                  <Sparkles className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-foreground mb-1 text-sm">AI Insight</p>
+                    <p className="text-sm text-muted-foreground">{product.aiInsight}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Description */}
-            <div>
-              <h3 className="font-semibold text-foreground mb-2">About This Item</h3>
-              <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>
-            </div>
+            {product.description && (
+              <div>
+                <h3 className="font-semibold text-foreground mb-2">About This Item</h3>
+                <p className="text-muted-foreground leading-relaxed text-sm">{product.description}</p>
+              </div>
+            )}
 
             {/* Color */}
             <div>
@@ -237,7 +142,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 Color: <span className="font-normal text-muted-foreground">{selectedColor}</span>
               </h3>
               <div className="flex gap-2 flex-wrap">
-                {product.colors.map((color) => (
+                {colors.map((color) => (
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
@@ -260,7 +165,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
                 <button className="text-sm text-accent hover:underline">Size Guide</button>
               </div>
               <div className="flex gap-2 flex-wrap">
-                {product.sizes.map((size) => (
+                {sizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
@@ -300,7 +205,7 @@ export default function ProductDetailPage({ params }: { params: { id: string } }
             <div className="flex gap-3 pt-2">
               <Button size="lg" className="flex-1 gap-2" onClick={handleAddToCart} disabled={!product.inStock}>
                 <ShoppingBag className="h-5 w-5" />
-                {isAdded ? "Added!" : "Add to Cart"}
+                {!product.inStock ? "Out of Stock" : isAdded ? "Added!" : "Add to Cart"}
               </Button>
               <Button size="lg" variant="outline" className="gap-2 bg-transparent" onClick={() => setIsFavorite(!isFavorite)}>
                 <Heart className={`h-5 w-5 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
