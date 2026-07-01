@@ -5,6 +5,7 @@ import { useCart } from "@/lib/cart-context"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, CheckCircle, CreditCard, Phone, ShoppingBag } from "lucide-react"
+import { NavLogo } from "@/components/nav-logo"
 import Link from "next/link"
 
 type Step = "address" | "payment" | "success"
@@ -99,15 +100,12 @@ export default function CheckoutPage() {
       {/* Header */}
       <div className="border-b border-border bg-card/50 sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8 flex items-center justify-between">
-          <button
-            onClick={() => step === "payment" ? setStep("address") : history.back()}
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition"
-          >
+          <NavLogo size="sm" />
+          <h1 className="font-bold text-foreground">Checkout</h1>
+          <button onClick={() => step === "payment" ? setStep("address") : history.back()} className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition">
             <ArrowLeft className="h-4 w-4" />
             {step === "payment" ? "Back" : "Back to Cart"}
           </button>
-          <h1 className="font-bold text-foreground">Checkout</h1>
-          <div className="w-24" />
         </div>
 
         {/* Steps */}

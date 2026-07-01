@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, MapPin, CheckCircle2, Star, Users, Award, DollarSign } from "lucide-react"
 import { getCreatorById } from "@/lib/creators"
+import { NavLogo } from "@/components/nav-logo"
 import { products } from "@/lib/products"
 
 export default function CreatorProfilePage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,9 +30,10 @@ export default function CreatorProfilePage({ params }: { params: Promise<{ id: s
       {/* Header */}
       <div className="border-b border-border bg-card/50 sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+          <NavLogo size="sm" />
           <Link href="/creators" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition">
             <ArrowLeft className="h-4 w-4" />
-            All Creators
+            Creators
           </Link>
         </div>
       </div>

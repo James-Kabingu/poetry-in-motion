@@ -4,6 +4,8 @@ import { use, useState } from "react"
 import { useCart } from "@/lib/cart-context"
 import { getProductById, products } from "@/lib/products"
 import { getCreatorById } from "@/lib/creators"
+import { NavLogo } from "@/components/nav-logo"
+import { CartDrawer } from "@/components/cart-drawer"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Heart, ShoppingBag, Sparkles, Star, Truck, RotateCcw, Shield, ShoppingCart } from "lucide-react"
 import Link from "next/link"
@@ -32,6 +34,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [quantity, setQuantity] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
   const [isAdded, setIsAdded] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const handleAddToCart = () => {
     addItem({
@@ -45,6 +48,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       category: product.category,
     })
     setIsAdded(true)
+    setDrawerOpen(true)
     setTimeout(() => setIsAdded(false), 2000)
   }
 
@@ -53,9 +57,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       {/* Header */}
       <div className="border-b border-border bg-card/50 sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <NavLogo size="sm" />
           <Link href="/shop" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition">
             <ArrowLeft className="h-4 w-4" />
-            Back to Shop
+            Shop
           </Link>
           <Link href="/cart" className="relative inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition">
             <ShoppingCart className="h-5 w-5" />
@@ -248,6 +253,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           </div>
         </div>
       </div>
+      <CartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </main>
   )
 }

@@ -10,6 +10,7 @@ import { products, categories } from "@/lib/products"
 import { creators, getCreatorById } from "@/lib/creators"
 import { useCart } from "@/lib/cart-context"
 import { NavLogo } from "@/components/nav-logo"
+import { CartDrawer } from "@/components/cart-drawer"
 import { useRouter } from "next/navigation"
 
 const priceRanges = [
@@ -44,6 +45,7 @@ function ShopContent() {
   const [showFilters, setShowFilters] = useState(false)
   const [favorites, setFavorites] = useState<string[]>([])
   const [addedId, setAddedId] = useState<string | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
@@ -72,6 +74,7 @@ function ShopContent() {
       category: product.category,
     })
     setAddedId(product.id)
+    setDrawerOpen(true)
     setTimeout(() => setAddedId(null), 1200)
   }
 
@@ -339,6 +342,7 @@ function ShopContent() {
           </div>
         </div>
       </div>
+      <CartDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
     </main>
   )
 }

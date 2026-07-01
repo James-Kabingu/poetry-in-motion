@@ -4,6 +4,7 @@ import { useCart } from "@/lib/cart-context"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { ArrowLeft, Minus, Plus, Trash2, X } from "lucide-react"
+import { NavLogo } from "@/components/nav-logo"
 import Link from "next/link"
 import Image from "next/image"
 
@@ -49,12 +50,9 @@ export default function CartPage() {
       {/* Header */}
       <div className="border-b border-border bg-card/50 sticky top-0 z-40">
         <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8 flex items-center justify-between">
-          <Link href="/shop" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition">
-            <ArrowLeft className="h-4 w-4" />
-            Continue Shopping
-          </Link>
+          <NavLogo size="sm" />
           <h1 className="font-bold text-foreground">Cart ({totalItems})</h1>
-          <div className="w-28" />
+          <Link href="/shop" className="text-sm text-muted-foreground hover:text-foreground transition">Shop</Link>
         </div>
       </div>
 
