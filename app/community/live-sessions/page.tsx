@@ -1,9 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar, Users, Video } from "lucide-react"
+import { Calendar, Users, Video, ArrowLeft } from "lucide-react"
+import { NavLogo } from "@/components/nav-logo"
 
 interface LiveSession {
   id: string
@@ -50,10 +52,20 @@ export default function LiveSessionsPage() {
     }
   }
 
-  if (loading) return <div className="p-8">Loading sessions...</div>
+  if (loading) return <div className="p-8"><NavLogo /></div>
 
   return (
-    <main className="min-h-screen bg-background p-8">
+    <main className="min-h-screen bg-background">
+      <div className="border-b border-border bg-card/50 sticky top-0 z-40">
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex items-center justify-between">
+          <NavLogo size="sm" />
+          <Link href="/community" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Community
+          </Link>
+        </div>
+      </div>
+      <div className="p-8">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-foreground mb-2">Live Styling Sessions</h1>
@@ -108,6 +120,7 @@ export default function LiveSessionsPage() {
             ))}
           </div>
         )}
+      </div>
       </div>
     </main>
   )

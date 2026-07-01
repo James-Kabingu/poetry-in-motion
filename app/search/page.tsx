@@ -1,6 +1,7 @@
 "use client"
 
 import { useRef } from "react"
+import { NavLogo } from "@/components/nav-logo"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Search, X, TrendingUp, Clock, Star, Camera } from "lucide-react"
@@ -53,7 +54,10 @@ export default function SearchPage() {
     <main className="min-h-screen bg-background">
       {/* Header - Google style search bar */}
       <div className="border-b border-border bg-card/50 sticky top-0 z-40">
-        <div className="mx-auto max-w-3xl px-4 py-4 lg:px-8">
+        <div className="mx-auto max-w-3xl px-4 py-3 lg:px-8">
+          <div className="flex items-center justify-between mb-3">
+            <NavLogo size="sm" />
+          </div>
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-full border border-border bg-background focus-within:ring-2 focus-within:ring-accent transition">
             <Search className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             <input

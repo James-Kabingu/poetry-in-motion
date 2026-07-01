@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Menu, X, Search, ShoppingCart, User } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
 import { useCart } from "@/lib/cart-context"
+import { NavLogo } from "./nav-logo"
 
 export function MobileHeader() {
   const [isOpen, setIsOpen] = useState(false)
@@ -14,13 +15,7 @@ export function MobileHeader() {
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border md:hidden">
         <div className="flex items-center justify-between h-16 px-4">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/images/logos/logo-light.png" alt="Poetry In Motion" className="h-8 w-8 object-contain" />
-            <span className="font-bold text-sm text-foreground leading-tight">
-              Poetry<br />In Motion
-            </span>
-          </Link>
+          <NavLogo size="sm" />
 
           {/* Right Icons */}
           <div className="flex items-center gap-1">

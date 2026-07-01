@@ -1,6 +1,7 @@
 import Image from "next/image"
 import Link from "next/link"
 import { User, ShoppingBag, Heart, MapPin, Settings, LogOut, ChevronRight } from "lucide-react"
+import { NavLogo } from "@/components/nav-logo"
 
 const navItems = [
   { href: "/account", label: "My Profile", icon: User },
@@ -18,16 +19,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
       <nav className="sticky top-0 z-50 border-b border-[#e8e0d4] dark:border-[#2a1f14] bg-[#faf8f5]/95 dark:bg-[#0e0a06]/95 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative h-9 w-9">
-                <Image src="/images/logos/logo-light.png" alt="Poetry In Motion" fill sizes="36px" className="object-contain dark:hidden" />
-                <Image src="/images/logos/logo-dark.png" alt="Poetry In Motion" fill sizes="36px" className="object-contain hidden dark:block" />
-              </div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs font-bold tracking-widest text-[#3d2c1e] dark:text-[#c9a84c] uppercase">Poetry In Motion</span>
-                <span className="text-xs text-[#c9a84c] italic">Mali Safi.</span>
-              </div>
-            </Link>
+            <NavLogo size="sm" />
             <Link href="/" className="text-sm text-[#6b5744] dark:text-[#a89070] hover:text-[#c9a84c] transition">
               Back to shop
             </Link>

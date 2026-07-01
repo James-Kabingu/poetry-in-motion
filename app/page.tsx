@@ -2,6 +2,7 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { NavLogo } from "@/components/nav-logo"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Sparkles, Users, Leaf, ShoppingBag, ShoppingCart, Search, Camera, Heart, Menu, User } from "lucide-react"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -17,28 +18,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-3">
-              <div className="relative h-10 w-10">
-                <Image
-                  src="/images/logos/logo-light.png"
-                  alt="Poetry In Motion"
-                  fill
-                  sizes="40px"
-                  className="object-contain dark:hidden"
-                />
-                <Image
-                  src="/images/logos/logo-dark.png"
-                  alt="Poetry In Motion"
-                  fill
-                  sizes="40px"
-                  className="object-contain hidden dark:block"
-                />
-              </div>
-              <div className="flex flex-col leading-tight">
-                <span className="text-sm font-bold tracking-widest text-[#3d2c1e] dark:text-[#c9a84c] uppercase">Poetry In Motion</span>
-                <span className="text-xs text-[#c9a84c] italic">Mali Safi.</span>
-              </div>
-            </Link>
+            <NavLogo />
 
             {/* Desktop Nav */}
             <div className="hidden md:flex items-center gap-8">
