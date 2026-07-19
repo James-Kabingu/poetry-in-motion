@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 // Support ticket management
 const supportTickets: Record<string, any> = {}
 
@@ -18,7 +19,7 @@ export async function POST(request: Request) {
   }
 
   supportTickets[ticket.id] = ticket
-  return Response.json(ticket)
+  return NextResponse.json(ticket)
 }
 
 export async function GET(request: Request) {
@@ -26,9 +27,9 @@ export async function GET(request: Request) {
   const userId = searchParams.get("userId")
 
   if (!userId) {
-    return Response.json({ error: "Missing userId" }, { status: 400 })
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 })
   }
 
   const userTickets = Object.values(supportTickets).filter((t: any) => t.userId === userId)
-  return Response.json(userTickets)
+  return NextResponse.json(userTickets)
 }

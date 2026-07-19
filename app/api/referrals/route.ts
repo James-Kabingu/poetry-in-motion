@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 // Referral program management
 const referrals: Record<string, any> = {}
 const referralRewards: Record<string, number> = {}
@@ -6,7 +7,7 @@ export async function POST(request: Request) {
   const { referrerId, referredEmail } = await request.json()
 
   if (!referrerId || !referredEmail) {
-    return Response.json({ error: "Missing required fields" }, { status: 400 })
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
 
   const referralCode = `REF_${referrerId}_${Date.now()}`
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
   }
 
   referrals[referralCode] = referral
-  return Response.json(referral)
+  return NextResponse.json(referral)
 }
 
 export async function GET(request: Request) {
@@ -28,14 +29,14 @@ export async function GET(request: Request) {
   const referrerId = searchParams.get("referrerId")
 
   if (!referrerId) {
-    return Response.json({ error: "Missing referrerId" }, { status: 400 })
+    return NextResponse.json({ error: "Missing referrerId" }, { status: 400 })
   }
 
   const userReferrals = Object.values(referrals).filter((r: any) => r.referrerId === referrerId)
   const totalRewards = referralRewards[referrerId] || 0
   const completedReferrals = userReferrals.filter((r: any) => r.status === "completed").length
 
-  return Response.json({
+  return NextResponse.json({
     referrals: userReferrals,
     totalRewards,
     completedReferrals,

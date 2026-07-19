@@ -22,13 +22,13 @@ export async function searchByText(query: string): Promise<SearchResult[]> {
 
   if (isSnapFindConfigured()) {
     const matches = await callSnapFind({ mode: "text", query, k: 20 })
-    return matches
-      .map((m) => {
-        const product = getProductById(m.itemId)
-        if (!product) return null
-        return { ...product, matchType: "text" as const, matchConfidence: m.score }
-      })
-      .filter((r): r is SearchResult => r !== null)
+    return matches.reduce<SearchResult[]>((acc, m) => {
+      const product = getProductById(m.itemId)
+      if (product) {
+        acc.push({ ...product, matchType: "text" as const, matchConfidence: m.score })
+      }
+      return acc
+    }, [])
   }
 
   // Fallback: local substring match
@@ -55,11 +55,11 @@ export async function searchByImage(imageFile: File): Promise<SearchResult[]> {
   }
 
   const matches = await callSnapFind({ mode: "image", imageFile, k: 20 })
-  return matches
-    .map((m) => {
-      const product = getProductById(m.itemId)
-      if (!product) return null
-      return { ...product, matchType: "image" as const, matchConfidence: m.score }
-    })
-    .filter((r): r is SearchResult => r !== null)
+  return matches.reduce<SearchResult[]>((acc, m) => {
+    const product = getProductById(m.itemId)
+    if (product) {
+      acc.push({ ...product, matchType: "image" as const, matchConfidence: m.score })
+    }
+    return acc
+  }, [])
 }

@@ -3,9 +3,9 @@ import { type NextRequest, NextResponse } from "next/server"
 // In-memory storage for trade-ins
 const tradeIns: Record<string, any> = {}
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const tradeIn = tradeIns[params.id]
+    const tradeIn = tradeIns[(await params).id]
 
     if (!tradeIn) {
       return NextResponse.json({ error: "Trade-in not found" }, { status: 404 })
@@ -20,9 +20,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const tradeIn = tradeIns[params.id]
+    const tradeIn = tradeIns[(await params).id]
 
     if (!tradeIn) {
       return NextResponse.json({ error: "Trade-in not found" }, { status: 404 })
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       ...updates,
     }
 
-    tradeIns[params.id] = updatedTradeIn
+    tradeIns[(await params).id] = updatedTradeIn
 
     return NextResponse.json({
       success: true,

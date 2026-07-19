@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 // Real-time notifications
 const notifications: Record<string, any[]> = {}
 
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
   }
   notifications[userId].push(notification)
 
-  return Response.json(notification)
+  return NextResponse.json(notification)
 }
 
 export async function GET(request: Request) {
@@ -27,9 +28,9 @@ export async function GET(request: Request) {
   const userId = searchParams.get("userId")
 
   if (!userId) {
-    return Response.json({ error: "Missing userId" }, { status: 400 })
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 })
   }
 
   const userNotifications = notifications[userId] || []
-  return Response.json(userNotifications)
+  return NextResponse.json(userNotifications)
 }

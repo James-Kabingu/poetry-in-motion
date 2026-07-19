@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { mockCreators } from "@/lib/mock-data"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const creator = mockCreators[params.id]
+    const creator = mockCreators[(await params).id]
 
     if (!creator) {
       return NextResponse.json({ error: "Creator not found" }, { status: 404 })
@@ -18,9 +18,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const creator = mockCreators[params.id]
+    const creator = mockCreators[(await params).id]
 
     if (!creator) {
       return NextResponse.json({ error: "Creator not found" }, { status: 404 })
@@ -33,7 +33,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       ...updates,
     }
 
-    mockCreators[params.id] = updatedCreator
+    mockCreators[(await params).id] = updatedCreator
 
     return NextResponse.json({
       success: true,

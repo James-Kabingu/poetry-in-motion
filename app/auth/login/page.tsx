@@ -1,9 +1,51 @@
+"use client"
+
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Eye, EyeOff, Mail, Lock, ArrowLeft } from "lucide-react"
 
-export default function LoginPage() {
+function LoginForm() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get("redirect") || "/"
+
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
+
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || "Something went wrong. Please try again.")
+        setLoading(false)
+        return
+      }
+
+      router.push(redirectTo)
+      router.refresh()
+    } catch {
+      setError("Could not connect to the server. Please try again.")
+      setLoading(false)
+    }
+  }
+
   return (
     <main className="min-h-screen bg-[#faf8f5] dark:bg-[#0e0a06] flex">
 
@@ -63,8 +105,14 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-[#1a1108] dark:text-[#faf8f5] mb-2">Welcome back</h1>
           <p className="text-[#6b5744] dark:text-[#a89070] mb-8">Sign in to your Poetry In Motion account.</p>
 
+          {error && (
+            <div className="mb-6 px-4 py-3 rounded-xl bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900/30 text-sm text-red-600 dark:text-red-400">
+              {error}
+            </div>
+          )}
+
           {/* Google OAuth */}
-          <button className="w-full flex items-center justify-center gap-3 border border-[#e8e0d4] dark:border-[#2a1f14] rounded-xl py-3 px-4 text-sm font-medium text-[#3d2c1e] dark:text-[#faf8f5] hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition mb-6">
+          <button type="button" className="w-full flex items-center justify-center gap-3 border border-[#e8e0d4] dark:border-[#2a1f14] rounded-xl py-3 px-4 text-sm font-medium text-[#3d2c1e] dark:text-[#faf8f5] hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition mb-6">
             <svg className="h-5 w-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -81,13 +129,16 @@ export default function LoginPage() {
           </div>
 
           {/* Email/password form */}
-          <div className="flex flex-col gap-4">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-[#3d2c1e] dark:text-[#faf8f5]">Email address</label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a89070]" />
                 <input
                   type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
                   className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#e8e0d4] dark:border-[#2a1f14] bg-white dark:bg-[#1a1108] text-[#1a1108] dark:text-[#faf8f5] placeholder-[#a89070] text-sm focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition"
                 />
@@ -102,20 +153,31 @@ export default function LoginPage() {
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#a89070]" />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
                   className="w-full pl-10 pr-12 py-3 rounded-xl border border-[#e8e0d4] dark:border-[#2a1f14] bg-white dark:bg-[#1a1108] text-[#1a1108] dark:text-[#faf8f5] placeholder-[#a89070] text-sm focus:outline-none focus:ring-2 focus:ring-[#c9a84c] transition"
                 />
-                <button className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a89070] hover:text-[#3d2c1e] dark:hover:text-[#faf8f5]">
-                  <Eye className="h-4 w-4" />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a89070] hover:text-[#3d2c1e] dark:hover:text-[#faf8f5]"
+                >
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
 
-            <Button className="w-full py-3 rounded-xl bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black dark:hover:bg-[#b8973b] font-semibold mt-2">
-              Sign In
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 rounded-xl bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black dark:hover:bg-[#b8973b] font-semibold mt-2 disabled:opacity-60"
+            >
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
-          </div>
+          </form>
 
           <p className="text-center text-sm text-[#6b5744] dark:text-[#a89070] mt-6">
             Don&apos;t have an account?{" "}
@@ -126,5 +188,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   )
 }

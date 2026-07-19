@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { mockUsers } from "@/lib/mock-data"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = mockUsers[params.id]
+    const user = mockUsers[(await params).id]
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -15,9 +15,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = mockUsers[params.id]
+    const user = mockUsers[(await params).id]
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -32,7 +32,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       updatedAt: new Date(),
     }
 
-    mockUsers[params.id] = updatedUser
+    mockUsers[(await params).id] = updatedUser
 
     return NextResponse.json(updatedUser)
   } catch (error) {

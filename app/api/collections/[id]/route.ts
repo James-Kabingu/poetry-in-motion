@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { mockCollections } from "@/lib/mock-data"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const collection = mockCollections[params.id]
+    const { id } = await params
+    const collection = mockCollections[id]
 
     if (!collection) {
       return NextResponse.json({ error: "Collection not found" }, { status: 404 })
@@ -18,9 +19,10 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const collection = mockCollections[params.id]
+    const { id } = await params
+    const collection = mockCollections[id]
 
     if (!collection) {
       return NextResponse.json({ error: "Collection not found" }, { status: 404 })
@@ -33,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       ...updates,
     }
 
-    mockCollections[params.id] = updatedCollection
+    mockCollections[id] = updatedCollection
 
     return NextResponse.json({
       success: true,

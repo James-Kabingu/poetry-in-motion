@@ -1,6 +1,7 @@
-export async function POST(request: Request, { params }: { params: { code: string } }) {
+import { NextResponse } from "next/server"
+export async function POST(request: Request, { params }: { params: Promise<{ code: string }> }) {
   const { userId } = await request.json()
-  const { code } = params
+  const { code } = await params
 
   // Verify referral code and claim reward
   const reward = {
@@ -11,5 +12,5 @@ export async function POST(request: Request, { params }: { params: { code: strin
     claimedAt: new Date(),
   }
 
-  return Response.json(reward)
+  return NextResponse.json(reward)
 }

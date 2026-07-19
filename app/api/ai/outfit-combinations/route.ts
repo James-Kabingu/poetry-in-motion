@@ -1,9 +1,10 @@
+import { NextResponse } from "next/server"
 // AI-powered outfit combination suggestions
 export async function POST(request: Request) {
   const { productIds, occasion } = await request.json()
 
   if (!productIds || productIds.length === 0) {
-    return Response.json({ error: "No products provided" }, { status: 400 })
+    return NextResponse.json({ error: "No products provided" }, { status: 400 })
   }
 
   // Mock outfit combinations
@@ -26,5 +27,5 @@ export async function POST(request: Request) {
     },
   ]
 
-  return Response.json(combinations)
+  return NextResponse.json(combinations)
 }

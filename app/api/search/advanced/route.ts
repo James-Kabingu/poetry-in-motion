@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 import { mockProducts } from "@/lib/mock-data"
 
 export async function GET(request: Request) {
@@ -10,7 +11,7 @@ export async function GET(request: Request) {
   const sizes = searchParams.getAll("sizes")
   const sortBy = searchParams.get("sortBy") || "relevance"
 
-  let results = mockProducts
+  let results = Object.values(mockProducts)
 
   // Text search with relevance scoring
   if (query) {
@@ -63,11 +64,11 @@ export async function GET(request: Request) {
       results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
       break
     case "trending":
-      results.sort((a, b) => b.views - a.views)
+      results.sort((a, b) => b.reviews - a.reviews)
       break
   }
 
-  return Response.json({
+  return NextResponse.json({
     results,
     total: results.length,
     filters: {

@@ -1,6 +1,7 @@
-export async function PUT(request: Request, { params }: { params: { userId: string } }) {
+import { NextResponse } from "next/server"
+export async function PUT(request: Request, { params }: { params: Promise<{ userId: string }> }) {
   const { tier } = await request.json()
-  const { userId } = params
+  const { userId } = await params
 
   // Update subscription tier
   const subscription = {
@@ -10,12 +11,12 @@ export async function PUT(request: Request, { params }: { params: { userId: stri
     updatedAt: new Date(),
   }
 
-  return Response.json(subscription)
+  return NextResponse.json(subscription)
 }
 
-export async function DELETE(request: Request, { params }: { params: { userId: string } }) {
-  const { userId } = params
+export async function DELETE(request: Request, { params }: { params: Promise<{ userId: string }> }) {
+  const { userId } = await params
 
   // Cancel subscription
-  return Response.json({ message: "Subscription cancelled", userId })
+  return NextResponse.json({ message: "Subscription cancelled", userId })
 }
