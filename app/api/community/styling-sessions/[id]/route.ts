@@ -3,9 +3,9 @@ import { type NextRequest, NextResponse } from "next/server"
 // In-memory storage for styling sessions
 const stylingSessions: Record<string, any> = {}
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = stylingSessions[params.id]
+    const session = stylingSessions[(await params).id]
 
     if (!session) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 })
@@ -20,9 +20,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const session = stylingSessions[params.id]
+    const session = stylingSessions[(await params).id]
 
     if (!session) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 })
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       ...updates,
     }
 
-    stylingSessions[params.id] = updatedSession
+    stylingSessions[(await params).id] = updatedSession
 
     return NextResponse.json({
       success: true,

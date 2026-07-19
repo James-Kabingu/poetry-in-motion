@@ -61,7 +61,7 @@ export function isSnapFindConfigured(): boolean {
  * Returns an empty array if SnapFind is not configured, so callers
  * can safely call this unconditionally and fall back gracefully.
  */
-export async function callSnapFind(params: SnapFindSearchParams): Promise<SnapFindMatch[]> {
+export async function callSnapFind(_params: SnapFindSearchParams): Promise<SnapFindMatch[]> {
   if (!isSnapFindConfigured()) {
     console.warn("SnapFind not configured (missing base URL or API key). Returning no matches.")
     return []

@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { mockOrders } from "@/lib/mock-data"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const order = mockOrders[params.id]
+    const order = mockOrders[(await params).id]
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
@@ -18,9 +18,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const order = mockOrders[params.id]
+    const order = mockOrders[(await params).id]
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 })
@@ -35,7 +35,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       updatedAt: new Date(),
     }
 
-    mockOrders[params.id] = updatedOrder
+    mockOrders[(await params).id] = updatedOrder
 
     return NextResponse.json({
       success: true,

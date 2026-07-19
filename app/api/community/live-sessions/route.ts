@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 // Live styling sessions management
 const liveSessions: Record<string, any> = {}
 
@@ -16,10 +17,10 @@ export async function POST(request: Request) {
   }
 
   liveSessions[session.id] = session
-  return Response.json(session)
+  return NextResponse.json(session)
 }
 
 export async function GET() {
   const sessions = Object.values(liveSessions).filter((s: any) => s.status === "scheduled" || s.status === "live")
-  return Response.json(sessions)
+  return NextResponse.json(sessions)
 }

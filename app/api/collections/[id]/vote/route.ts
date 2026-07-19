@@ -4,7 +4,7 @@ import { mockCollections } from "@/lib/mock-data"
 // In-memory storage for votes
 const collectionVotes: Record<string, Record<string, string>> = {}
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = request.headers.get("x-user-id")
     const { voteType } = await request.json()
@@ -13,17 +13,17 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
     }
 
-    const collection = mockCollections[params.id]
+    const collection = mockCollections[(await params).id]
 
     if (!collection) {
       return NextResponse.json({ error: "Collection not found" }, { status: 404 })
     }
 
-    if (!collectionVotes[params.id]) {
-      collectionVotes[params.id] = {}
+    if (!collectionVotes[(await params).id]) {
+      collectionVotes[(await params).id] = {}
     }
 
-    const previousVote = collectionVotes[params.id][userId]
+    const previousVote = collectionVotes[(await params).id][userId]
 
     // Remove previous vote if exists
     if (previousVote === "upvote") {
@@ -39,12 +39,12 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       collection.votes -= 1
     }
 
-    collectionVotes[params.id][userId] = voteType
+    collectionVotes[(await params).id][userId] = voteType
 
     return NextResponse.json({
       success: true,
       data: {
-        collectionId: params.id,
+        collectionId: (await params).id,
         votes: collection.votes,
         userVote: voteType,
       },

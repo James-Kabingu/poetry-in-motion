@@ -1,10 +1,11 @@
+import { NextResponse } from "next/server"
 // Find users with similar style profiles
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const userId = searchParams.get("userId")
 
   if (!userId) {
-    return Response.json({ error: "Missing userId" }, { status: 400 })
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 })
   }
 
   // Mock style twins
@@ -27,5 +28,5 @@ export async function GET(request: Request) {
     },
   ]
 
-  return Response.json(styleTwins)
+  return NextResponse.json(styleTwins)
 }

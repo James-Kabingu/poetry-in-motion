@@ -1,11 +1,14 @@
+import { NextResponse } from "next/server"
 // Subscription management API
 const subscriptions: Record<string, any> = {}
+
+const TIER_PRICES: Record<string, number> = { free: 0, premium: 15, vip: 50, elite: 75 }
 
 export async function POST(request: Request) {
   const { userId, tier } = await request.json()
 
   if (!userId || !tier) {
-    return Response.json({ error: "Missing required fields" }, { status: 400 })
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
 
   const subscription = {
@@ -15,11 +18,11 @@ export async function POST(request: Request) {
     status: "active",
     startDate: new Date(),
     renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-    price: { free: 0, premium: 15, vip: 50, elite: 75 }[tier] || 0,
+    price: TIER_PRICES[tier] || 0,
   }
 
   subscriptions[userId] = subscription
-  return Response.json(subscription)
+  return NextResponse.json(subscription)
 }
 
 export async function GET(request: Request) {
@@ -27,9 +30,9 @@ export async function GET(request: Request) {
   const userId = searchParams.get("userId")
 
   if (!userId) {
-    return Response.json({ error: "Missing userId" }, { status: 400 })
+    return NextResponse.json({ error: "Missing userId" }, { status: 400 })
   }
 
   const subscription = subscriptions[userId] || { tier: "free", status: "inactive" }
-  return Response.json(subscription)
+  return NextResponse.json(subscription)
 }

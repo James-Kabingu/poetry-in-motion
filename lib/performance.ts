@@ -1,5 +1,18 @@
 // Performance monitoring utilities
-export const reportWebVitals = (metric: any) => {
+
+declare global {
+  interface Window {
+    gtag?: (...args: any[]) => void
+  }
+}
+
+interface WebVitalsMetric {
+  id: string
+  name: string
+  value: number
+}
+
+export const reportWebVitals = (metric: WebVitalsMetric) => {
   console.log("[Performance]", metric.name, metric.value)
 
   // Send to analytics service

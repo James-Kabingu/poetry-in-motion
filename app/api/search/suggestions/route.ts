@@ -1,3 +1,4 @@
+import { NextResponse } from "next/server"
 import { mockProducts } from "@/lib/mock-data"
 
 export async function GET(request: Request) {
@@ -5,7 +6,7 @@ export async function GET(request: Request) {
   const query = searchParams.get("q") || ""
 
   if (!query || query.length < 2) {
-    return Response.json({ suggestions: [] })
+    return NextResponse.json({ suggestions: [] })
   }
 
   const lowerQuery = query.toLowerCase()
@@ -13,7 +14,7 @@ export async function GET(request: Request) {
   // Get unique suggestions from products
   const suggestions = new Set<string>()
 
-  mockProducts.forEach((product) => {
+  Object.values(mockProducts).forEach((product) => {
     if (product.name.toLowerCase().includes(lowerQuery)) {
       suggestions.add(product.name)
     }
@@ -41,7 +42,7 @@ export async function GET(request: Request) {
     }
   })
 
-  return Response.json({
+  return NextResponse.json({
     suggestions: Array.from(suggestions).slice(0, 10),
   })
 }

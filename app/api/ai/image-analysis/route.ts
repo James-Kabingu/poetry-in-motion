@@ -1,10 +1,12 @@
 // AI image analysis for style detection
+import { NextResponse } from "next/server"
+
 export async function POST(request: Request) {
   const formData = await request.formData()
   const file = formData.get("file") as File
 
   if (!file) {
-    return Response.json({ error: "No file provided" }, { status: 400 })
+    return NextResponse.json({ error: "No file provided" }, { status: 400 })
   }
 
   // Mock AI analysis - in production, use computer vision API
@@ -21,5 +23,5 @@ export async function POST(request: Request) {
     ],
   }
 
-  return Response.json(analysis)
+  return NextResponse.json(analysis)
 }

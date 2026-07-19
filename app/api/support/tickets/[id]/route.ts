@@ -1,7 +1,8 @@
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const { id } = params
+import { NextResponse } from "next/server"
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   // Return ticket details
-  return Response.json({
+  return NextResponse.json({
     id,
     subject: "Sample ticket",
     status: "open",
@@ -9,11 +10,11 @@ export async function GET(request: Request, { params }: { params: { id: string }
   })
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
+export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { status } = await request.json()
-  const { id } = params
+  const { id } = await params
 
-  return Response.json({
+  return NextResponse.json({
     id,
     status,
     updatedAt: new Date(),
