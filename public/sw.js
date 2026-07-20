@@ -1,5 +1,5 @@
 // Service Worker for offline functionality and caching
-const CACHE_NAME = "styleai-v1"
+const CACHE_NAME = "styleai-v2"
 const urlsToCache = ["/", "/quiz", "/shop", "/dashboard", "/offline"]
 
 self.addEventListener("install", (event) => {
