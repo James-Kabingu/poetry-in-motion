@@ -14,7 +14,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#faf8f5] dark:bg-[#0e0a06]">
 
       {/* Navigation */}
-      <nav className="sticky top-0 z-50 border-b border-[#e8e0d4] dark:border-[#2a1f14] bg-[#faf8f5]/95 dark:bg-[#0e0a06]/95 backdrop-blur supports-[backdrop-filter]:bg-[#faf8f5]/60">
+      <nav className="hidden md:block sticky top-0 z-50 border-b border-[#e8e0d4] dark:border-[#2a1f14] bg-[#faf8f5]/95 dark:bg-[#0e0a06]/95 backdrop-blur supports-[backdrop-filter]:bg-[#faf8f5]/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
