@@ -13,67 +13,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#faf8f5] dark:bg-[#0e0a06]">
 
-      {/* Navigation */}
-      <nav className="hidden md:block sticky top-0 z-50 border-b border-[#e8e0d4] dark:border-[#2a1f14] bg-[#faf8f5]/95 dark:bg-[#0e0a06]/95 backdrop-blur supports-[backdrop-filter]:bg-[#faf8f5]/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo */}
-            <NavLogo />
-
-            {/* Desktop Nav */}
-            <div className="hidden md:flex items-center gap-8">
-              {[
-                { label: "Shop", href: "/shop" },
-                { label: "AI Styling", href: "/quiz" },
-                { label: "Creators", href: "/creators" },
-                { label: "Community", href: "/community/live-sessions" },
-                { label: "Sustainability", href: "/circular" },
-              ].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm text-[#6b5744] dark:text-[#a89070] hover:text-[#3d2c1e] dark:hover:text-[#c9a84c] transition font-medium"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-
-            {/* Right actions */}
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <Link href="/search" className="p-2 rounded-full hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition">
-                <Search className="h-4 w-4 text-[#6b5744] dark:text-[#a89070]" />
-              </Link>
-              <Link href="/search?mode=image" title="Search by image" className="p-2 rounded-full hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition">
-                <Camera className="h-4 w-4 text-[#6b5744] dark:text-[#a89070]" />
-              </Link>
-              <Link href="/cart" className="relative p-2 rounded-full hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition">
-                <ShoppingCart className="h-4 w-4 text-[#6b5744] dark:text-[#a89070]" />
-                {totalItems > 0 && (
-                  <span className="absolute top-0 right-0 h-4 w-4 bg-[#c9a84c] text-black text-xs rounded-full flex items-center justify-center font-bold">
-                    {totalItems > 9 ? "9+" : totalItems}
-                  </span>
-                )}
-              </Link>
-              <Link href="/account" className="p-2 rounded-full hover:bg-[#f0e8dc] dark:hover:bg-[#1a1108] transition">
-                <User className="h-4 w-4 text-[#6b5744] dark:text-[#a89070]" />
-              </Link>
-              <Link href="/auth/login">
-                <Button variant="outline" size="sm" className="hidden sm:flex border-[#3d2c1e] text-[#3d2c1e] hover:bg-[#3d2c1e] hover:text-white dark:border-[#c9a84c] dark:text-[#c9a84c] dark:hover:bg-[#c9a84c] dark:hover:text-black">
-                  Sign In
-                </Button>
-              </Link>
-              <Link href="/auth/signup">
-                <Button size="sm" className="hidden sm:flex bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black dark:hover:bg-[#b8973b]">
-                  Get Started
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

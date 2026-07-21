@@ -84,7 +84,7 @@ function ShopContent() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 sticky top-16 md:top-0 z-40">
+      <div className="border-b border-border bg-card/50 sticky top-16 z-40">
         <div className="mx-auto max-w-7xl px-4 py-3 sm:py-4 lg:px-8">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <NavLogo size="sm" />

@@ -7,6 +7,7 @@ import { CartProvider } from "@/lib/cart-context"
 import { SearchProvider } from "@/lib/search-context"
 import { MobileHeader } from "@/components/mobile-header"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
+import { DesktopNav } from "@/components/desktop-nav"
 import "./globals.css"
 
 const geist = Geist({ subsets: ["latin"] })
@@ -44,7 +45,8 @@ export default function RootLayout({
           <CartProvider>
           <SearchProvider>
             <MobileHeader />
-            <main className="pb-16 md:pb-0">
+            <DesktopNav />
+            <main className="pb-16 md:pb-0 md:pt-16">
               {children}
             </main>
             <MobileBottomNav />
