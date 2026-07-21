@@ -1,20 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// In-memory storage for trade-ins
-const tradeIns: Record<string, any> = {}
+import { requireUserId, isAuthError } from "@/lib/auth/require-user"
+import { tradeInStore } from "@/lib/store"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const tradeIn = tradeIns[(await params).id]
+    const userId = await requireUserId()
+    if (isAuthError(userId)) return userId
 
-    if (!tradeIn) {
+    const tradeIn = tradeInStore[(await params).id]
+    if (!tradeIn || tradeIn.userId !== userId) {
       return NextResponse.json({ error: "Trade-in not found" }, { status: 404 })
     }
 
-    return NextResponse.json({
-      success: true,
-      data: tradeIn,
-    })
+    return NextResponse.json({ success: true, data: tradeIn })
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch trade-in" }, { status: 500 })
   }
@@ -22,25 +20,22 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const tradeIn = tradeIns[(await params).id]
+    const userId = await requireUserId()
+    if (isAuthError(userId)) return userId
 
-    if (!tradeIn) {
+    const id = (await params).id
+    const tradeIn = tradeInStore[id]
+    if (!tradeIn || tradeIn.userId !== userId) {
       return NextResponse.json({ error: "Trade-in not found" }, { status: 404 })
     }
 
     const updates = await request.json()
+    const { userId: _ignored, id: _ignoredId, ...safeUpdates } = updates
 
-    const updatedTradeIn = {
-      ...tradeIn,
-      ...updates,
-    }
+    const updatedTradeIn = { ...tradeIn, ...safeUpdates }
+    tradeInStore[id] = updatedTradeIn
 
-    tradeIns[(await params).id] = updatedTradeIn
-
-    return NextResponse.json({
-      success: true,
-      data: updatedTradeIn,
-    })
+    return NextResponse.json({ success: true, data: updatedTradeIn })
   } catch (error) {
     return NextResponse.json({ error: "Failed to update trade-in" }, { status: 500 })
   }

@@ -1,10 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { mockUsers } from "@/lib/mock-data"
+import { requireUserId, isAuthError } from "@/lib/auth/require-user"
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = mockUsers[(await params).id]
+    const userId = await requireUserId()
+    if (isAuthError(userId)) return userId
 
+    const { id } = await params
+    if (id !== userId) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
+
+    const user = mockUsers[id]
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
@@ -17,22 +25,24 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const user = mockUsers[(await params).id]
+    const userId = await requireUserId()
+    if (isAuthError(userId)) return userId
 
+    const { id } = await params
+    if (id !== userId) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 })
+    }
+
+    const user = mockUsers[id]
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
     }
 
     const updates = await request.json()
+    const { id: _ignoredId, ...safeUpdates } = updates
 
-    // Update user (in real app, validate and save to database)
-    const updatedUser = {
-      ...user,
-      ...updates,
-      updatedAt: new Date(),
-    }
-
-    mockUsers[(await params).id] = updatedUser
+    const updatedUser = { ...user, ...safeUpdates, updatedAt: new Date() }
+    mockUsers[id] = updatedUser
 
     return NextResponse.json(updatedUser)
   } catch (error) {

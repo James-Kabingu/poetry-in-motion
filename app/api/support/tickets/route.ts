@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server"
-// Support ticket management
-const supportTickets: Record<string, any> = {}
+import { requireUserId, isAuthError } from "@/lib/auth/require-user"
+import { supportTicketStore } from "@/lib/store"
 
 export async function POST(request: Request) {
-  const { userId, subject, description, category, priority } = await request.json()
+  const userId = await requireUserId()
+  if (isAuthError(userId)) return userId
+
+  const { subject, description, category, priority } = await request.json()
 
   const ticket = {
     id: `ticket_${Date.now()}`,
@@ -18,18 +21,14 @@ export async function POST(request: Request) {
     responses: [],
   }
 
-  supportTickets[ticket.id] = ticket
+  supportTicketStore[ticket.id] = ticket
   return NextResponse.json(ticket)
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const userId = searchParams.get("userId")
+  const userId = await requireUserId()
+  if (isAuthError(userId)) return userId
 
-  if (!userId) {
-    return NextResponse.json({ error: "Missing userId" }, { status: 400 })
-  }
-
-  const userTickets = Object.values(supportTickets).filter((t: any) => t.userId === userId)
+  const userTickets = Object.values(supportTicketStore).filter((t: any) => t.userId === userId)
   return NextResponse.json(userTickets)
 }

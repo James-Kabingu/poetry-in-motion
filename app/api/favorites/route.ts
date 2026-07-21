@@ -1,22 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// In-memory storage for favorites (replace with database in production)
-const userFavorites: Record<string, string[]> = {}
+import { requireUserId, isAuthError } from "@/lib/auth/require-user"
+import { favoritesStore } from "@/lib/store"
 
 export async function GET(request: NextRequest) {
   try {
-    const userId = request.headers.get("x-user-id")
+    const userId = await requireUserId()
+    if (isAuthError(userId)) return userId
 
-    if (!userId) {
-      return NextResponse.json({ error: "User ID is required" }, { status: 400 })
-    }
-
-    const favorites = userFavorites[userId] || []
-
-    return NextResponse.json({
-      success: true,
-      data: favorites,
-    })
+    return NextResponse.json({ success: true, data: favoritesStore[userId] || [] })
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch favorites" }, { status: 500 })
   }
@@ -24,25 +15,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const userId = request.headers.get("x-user-id")
+    const userId = await requireUserId()
+    if (isAuthError(userId)) return userId
+
     const { productId } = await request.json()
-
-    if (!userId || !productId) {
-      return NextResponse.json({ error: "User ID and product ID are required" }, { status: 400 })
+    if (!productId) {
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 })
     }
 
-    if (!userFavorites[userId]) {
-      userFavorites[userId] = []
-    }
+    if (!favoritesStore[userId]) favoritesStore[userId] = []
+    if (!favoritesStore[userId].includes(productId)) favoritesStore[userId].push(productId)
 
-    if (!userFavorites[userId].includes(productId)) {
-      userFavorites[userId].push(productId)
-    }
-
-    return NextResponse.json({
-      success: true,
-      data: userFavorites[userId],
-    })
+    return NextResponse.json({ success: true, data: favoritesStore[userId] })
   } catch (error) {
     return NextResponse.json({ error: "Failed to add favorite" }, { status: 500 })
   }
@@ -50,21 +34,19 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const userId = request.headers.get("x-user-id")
+    const userId = await requireUserId()
+    if (isAuthError(userId)) return userId
+
     const { productId } = await request.json()
-
-    if (!userId || !productId) {
-      return NextResponse.json({ error: "User ID and product ID are required" }, { status: 400 })
+    if (!productId) {
+      return NextResponse.json({ error: "Product ID is required" }, { status: 400 })
     }
 
-    if (userFavorites[userId]) {
-      userFavorites[userId] = userFavorites[userId].filter((id) => id !== productId)
+    if (favoritesStore[userId]) {
+      favoritesStore[userId] = favoritesStore[userId].filter((id) => id !== productId)
     }
 
-    return NextResponse.json({
-      success: true,
-      data: userFavorites[userId],
-    })
+    return NextResponse.json({ success: true, data: favoritesStore[userId] || [] })
   } catch (error) {
     return NextResponse.json({ error: "Failed to remove favorite" }, { status: 500 })
   }

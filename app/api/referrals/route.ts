@@ -1,45 +1,42 @@
 import { NextResponse } from "next/server"
-// Referral program management
-const referrals: Record<string, any> = {}
-const referralRewards: Record<string, number> = {}
+import { requireUserId, isAuthError } from "@/lib/auth/require-user"
+import { referralStore, referralRewardStore } from "@/lib/store"
 
 export async function POST(request: Request) {
-  const { referrerId, referredEmail } = await request.json()
+  const userId = await requireUserId()
+  if (isAuthError(userId)) return userId
 
-  if (!referrerId || !referredEmail) {
+  const { referredEmail } = await request.json()
+  if (!referredEmail) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
 
-  const referralCode = `REF_${referrerId}_${Date.now()}`
+  const referralCode = `REF_${userId}_${Date.now()}`
   const referral = {
     id: referralCode,
-    referrerId,
+    referrerId: userId,
     referredEmail,
     status: "pending",
     createdAt: new Date(),
     reward: 0,
   }
 
-  referrals[referralCode] = referral
+  referralStore[referralCode] = referral
   return NextResponse.json(referral)
 }
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const referrerId = searchParams.get("referrerId")
+  const userId = await requireUserId()
+  if (isAuthError(userId)) return userId
 
-  if (!referrerId) {
-    return NextResponse.json({ error: "Missing referrerId" }, { status: 400 })
-  }
-
-  const userReferrals = Object.values(referrals).filter((r: any) => r.referrerId === referrerId)
-  const totalRewards = referralRewards[referrerId] || 0
+  const userReferrals = Object.values(referralStore).filter((r: any) => r.referrerId === userId)
+  const totalRewards = referralRewardStore[userId] || 0
   const completedReferrals = userReferrals.filter((r: any) => r.status === "completed").length
 
   return NextResponse.json({
     referrals: userReferrals,
     totalRewards,
     completedReferrals,
-    referralCode: `STYLE_${referrerId}`,
+    referralCode: `STYLE_${userId}`,
   })
 }
