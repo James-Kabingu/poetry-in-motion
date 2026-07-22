@@ -1,27 +1,23 @@
 import { NextResponse } from "next/server"
+import { db } from "@/lib/db"
+import { supportTickets } from "@/lib/db/schema"
+import { eq } from "drizzle-orm"
 import { requireUserId, isAuthError } from "@/lib/auth/require-user"
-import { supportTicketStore } from "@/lib/store"
 
 export async function POST(request: Request) {
   const userId = await requireUserId()
   if (isAuthError(userId)) return userId
 
   const { subject, description, category, priority } = await request.json()
-
-  const ticket = {
-    id: `ticket_${Date.now()}`,
-    userId,
-    subject,
-    description,
-    category,
-    priority: priority || "medium",
-    status: "open",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    responses: [],
+  if (!subject) {
+    return NextResponse.json({ error: "Subject is required" }, { status: 400 })
   }
 
-  supportTicketStore[ticket.id] = ticket
+  const [ticket] = await db
+    .insert(supportTickets)
+    .values({ userId, subject, description, category, priority: priority || "medium", status: "open" })
+    .returning()
+
   return NextResponse.json(ticket)
 }
 
@@ -29,6 +25,9 @@ export async function GET(request: Request) {
   const userId = await requireUserId()
   if (isAuthError(userId)) return userId
 
-  const userTickets = Object.values(supportTicketStore).filter((t: any) => t.userId === userId)
-  return NextResponse.json(userTickets)
+  const tickets = await db.query.supportTickets.findMany({
+    where: eq(supportTickets.userId, userId),
+    orderBy: (t, { desc }) => [desc(t.createdAt)],
+  })
+  return NextResponse.json(tickets)
 }
