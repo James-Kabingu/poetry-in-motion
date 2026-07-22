@@ -1,6 +1,6 @@
 "use client"
 
-import { use, useState } from "react"
+import { use, useState, useEffect } from "react"
 import { useCart } from "@/lib/cart-context"
 import { getProductById, products } from "@/lib/products"
 import { getCreatorById } from "@/lib/creators"
@@ -33,6 +33,30 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
   const [isFavorite, setIsFavorite] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/favorites")
+      .then((res) => (res.status === 401 ? { success: false, data: [] } : res.json()))
+      .then((json) => {
+        if (json.success) setIsFavorite(json.data.includes(product.id))
+      })
+      .catch(() => {})
+  }, [product.id])
+
+  const toggleFavorite = async () => {
+    const next = !isFavorite
+    setIsFavorite(next) // optimistic
+    try {
+      const res = await fetch("/api/favorites", {
+        method: next ? "POST" : "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: product.id }),
+      })
+      if (res.status === 401) throw new Error()
+    } catch {
+      setIsFavorite(!next) // revert
+    }
+  }
   const [isAdded, setIsAdded] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -220,7 +244,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <ShoppingBag className="h-5 w-5" />
                 {!product.inStock ? "Out of Stock" : isAdded ? "Added!" : "Add to Cart"}
               </Button>
-              <Button size="lg" variant="outline" className="gap-2 bg-transparent" onClick={() => setIsFavorite(!isFavorite)}>
+              <Button size="lg" variant="outline" className="gap-2 bg-transparent" onClick={toggleFavorite}>
                 <Heart className={`h-5 w-5 ${isFavorite ? "fill-destructive text-destructive" : ""}`} />
               </Button>
               {isAdded && (

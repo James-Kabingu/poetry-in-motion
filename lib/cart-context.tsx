@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react"
 
 export interface CartItem {
   id: string
@@ -15,10 +15,12 @@ export interface CartItem {
 
 interface CartContextType {
   items: CartItem[]
-  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => void
-  removeItem: (id: string, color: string, size: string) => void
-  updateQuantity: (id: string, color: string, size: string, quantity: number) => void
+  loading: boolean
+  addItem: (item: Omit<CartItem, "quantity"> & { quantity?: number }) => Promise<void>
+  removeItem: (id: string, color: string, size: string) => Promise<void>
+  updateQuantity: (id: string, color: string, size: string, quantity: number) => Promise<void>
   clearCart: () => void
+  refreshCart: () => Promise<void>
   totalItems: number
   totalPrice: number
 }
@@ -27,46 +29,78 @@ const CartContext = createContext<CartContextType | null>(null)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const addItem = (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
-    setItems((prev) => {
-      const existing = prev.find(
-        (i) => i.id === newItem.id && i.color === newItem.color && i.size === newItem.size
-      )
-      if (existing) {
-        return prev.map((i) =>
-          i.id === newItem.id && i.color === newItem.color && i.size === newItem.size
-            ? { ...i, quantity: i.quantity + (newItem.quantity ?? 1) }
-            : i
-        )
+  const refreshCart = useCallback(async () => {
+    try {
+      const res = await fetch("/api/cart")
+      if (res.status === 401) {
+        // not logged in — cart is empty client-side, nothing to show
+        setItems([])
+        return
       }
-      return [...prev, { ...newItem, quantity: newItem.quantity ?? 1 }]
-    })
-  }
-
-  const removeItem = (id: string, color: string, size: string) => {
-    setItems((prev) => prev.filter((i) => !(i.id === id && i.color === color && i.size === size)))
-  }
-
-  const updateQuantity = (id: string, color: string, size: string, quantity: number) => {
-    if (quantity < 1) {
-      removeItem(id, color, size)
-      return
+      const json = await res.json()
+      if (json.success) setItems(json.data)
+    } catch {
+      // network issue — keep whatever's currently shown rather than clearing it
+    } finally {
+      setLoading(false)
     }
-    setItems((prev) =>
-      prev.map((i) =>
-        i.id === id && i.color === color && i.size === size ? { ...i, quantity } : i
-      )
-    )
+  }, [])
+
+  useEffect(() => {
+    refreshCart()
+  }, [refreshCart])
+
+  const addItem = async (newItem: Omit<CartItem, "quantity"> & { quantity?: number }) => {
+    const res = await fetch("/api/cart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productId: newItem.id,
+        quantity: newItem.quantity ?? 1,
+        color: newItem.color,
+        size: newItem.size,
+      }),
+    })
+    if (res.status === 401) {
+      throw new Error("Please sign in to add items to your cart.")
+    }
+    const json = await res.json()
+    if (json.success) setItems(json.data)
   }
 
+  const removeItem = async (id: string, color: string, size: string) => {
+    const res = await fetch("/api/cart", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: id, color, size }),
+    })
+    const json = await res.json()
+    if (json.success) setItems(json.data)
+  }
+
+  const updateQuantity = async (id: string, color: string, size: string, quantity: number) => {
+    const res = await fetch("/api/cart", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ productId: id, color, size, quantity }),
+    })
+    const json = await res.json()
+    if (json.success) setItems(json.data)
+  }
+
+  // Local-only clear for the checkout success screen — the server side is
+  // already cleared by POST /api/orders, so this just resets what's shown.
   const clearCart = () => setItems([])
 
   const totalItems = items.reduce((sum, i) => sum + i.quantity, 0)
   const totalPrice = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, updateQuantity, clearCart, totalItems, totalPrice }}>
+    <CartContext.Provider
+      value={{ items, loading, addItem, removeItem, updateQuantity, clearCart, refreshCart, totalItems, totalPrice }}
+    >
       {children}
     </CartContext.Provider>
   )

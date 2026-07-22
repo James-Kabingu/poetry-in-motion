@@ -1,93 +1,86 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ShoppingBag, X } from "lucide-react"
 import { useCart } from "@/lib/cart-context"
-
-interface WishlistItem {
-  id: number
-  name: string
-  creator: string
-  price: number
-  originalPrice: number | null
-  category: string
-  inStock: boolean
-  image: string
-}
-
-const initialWishlist: WishlistItem[] = [
-  {
-    id: 1,
-    name: "Afro-Fusion Linen Blazer",
-    creator: "Zawadi Designs",
-    price: 8500,
-    originalPrice: 11000,
-    category: "Clothing",
-    inStock: true,
-    image: "/images/categories/clothing.png",
-  },
-  {
-    id: 2,
-    name: "Handwoven Tote Bag",
-    creator: "Mama Pima Studios",
-    price: 3200,
-    originalPrice: null,
-    category: "Bags",
-    inStock: true,
-    image: "/images/categories/bags.png",
-  },
-  {
-    id: 3,
-    name: "Beaded Leather Sandals",
-    creator: "Jua Kali Craft",
-    price: 5600,
-    originalPrice: 6000,
-    category: "Shoes",
-    inStock: false,
-    image: "/images/categories/shoes.png",
-  },
-]
-
-const formatKES = (amount: number) => `KES ${amount.toLocaleString()}`
+import { getProductById, type Product } from "@/lib/products"
 
 export default function WishlistPage() {
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>(initialWishlist)
+  const [productIds, setProductIds] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const { addItem } = useCart()
-  const [addedId, setAddedId] = useState<number | null>(null)
+  const [addedId, setAddedId] = useState<string | null>(null)
 
-  const removeItem = (id: number) => {
-    setWishlistItems((prev) => prev.filter((item) => item.id !== id))
+  useEffect(() => {
+    fetch("/api/favorites")
+      .then((res) => {
+        if (res.status === 401) throw new Error("Please sign in to view your wishlist.")
+        return res.json()
+      })
+      .then((json) => {
+        if (json.success) setProductIds(json.data)
+      })
+      .catch((err) => setError(err instanceof Error ? err.message : "Failed to load wishlist."))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const wishlistProducts = productIds
+    .map((id) => getProductById(id))
+    .filter((p): p is Product => Boolean(p))
+
+  const removeItem = async (id: string) => {
+    setProductIds((prev) => prev.filter((pid) => pid !== id)) // optimistic
+    try {
+      await fetch("/api/favorites", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: id }),
+      })
+    } catch {
+      // revert on failure
+      setProductIds((prev) => [...prev, id])
+    }
   }
 
-  const handleAddToCart = (item: WishlistItem) => {
-    if (!item.inStock) return
-    addItem({
-      id: `wishlist-${item.id}`,
-      name: item.name,
-      price: item.price / 130, // convert KES to USD baseline used by cart context
-      image: item.image,
-      color: "Default",
-      size: "One Size",
-      category: item.category,
-    })
-    setAddedId(item.id)
-    setTimeout(() => setAddedId(null), 1500)
+  const handleAddToCart = async (product: Product) => {
+    if (!product.inStock) return
+    try {
+      await addItem({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        color: product.colors?.[0] ?? "Default",
+        size: product.sizes?.[0] ?? "One Size",
+        category: product.category,
+      })
+      setAddedId(product.id)
+      setTimeout(() => setAddedId(null), 1500)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not add to cart.")
+      setTimeout(() => setError(null), 3000)
+    }
   }
 
   const handleAddAllToCart = () => {
-    wishlistItems.filter((i) => i.inStock).forEach((item) => handleAddToCart(item))
+    wishlistProducts.filter((p) => p.inStock).forEach((p) => handleAddToCart(p))
+  }
+
+  if (loading) {
+    return <div className="text-center py-12 text-[#a89070]">Loading wishlist...</div>
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[#1a1108] dark:text-[#faf8f5]">
-          Wishlist <span className="text-[#a89070] font-normal text-lg">({wishlistItems.length})</span>
+          Wishlist <span className="text-[#a89070] font-normal text-lg">({wishlistProducts.length})</span>
         </h1>
-        {wishlistItems.length > 0 && (
+        {wishlistProducts.length > 0 && (
           <Button
             variant="outline"
             size="sm"
@@ -99,7 +92,13 @@ export default function WishlistPage() {
         )}
       </div>
 
-      {wishlistItems.length === 0 ? (
+      {error && (
+        <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2 text-sm text-destructive">
+          {error}
+        </div>
+      )}
+
+      {wishlistProducts.length === 0 ? (
         <div className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] p-12 flex flex-col items-center gap-4">
           <div className="relative h-32 w-32">
             <Image src="/images/illustrations/empty/wishlist.png" alt="Empty wishlist" fill sizes="128px" className="object-contain" />
@@ -112,7 +111,7 @@ export default function WishlistPage() {
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {wishlistItems.map((item) => (
+          {wishlistProducts.map((item) => (
             <div key={item.id} className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] overflow-hidden group hover:border-[#c9a84c]/40 transition">
               {/* Image */}
               <div className="relative h-48 bg-[#faf8f5] dark:bg-[#0e0a06]">
@@ -132,13 +131,10 @@ export default function WishlistPage() {
 
               {/* Info */}
               <div className="p-4">
-                <p className="text-xs text-[#c9a84c] mb-1">{item.creator}</p>
+                <p className="text-xs text-[#c9a84c] mb-1">{item.category}</p>
                 <p className="font-semibold text-sm text-[#1a1108] dark:text-[#faf8f5] mb-2 leading-snug">{item.name}</p>
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="font-bold text-[#3d2c1e] dark:text-[#faf8f5]">{formatKES(item.price)}</span>
-                  {item.originalPrice && (
-                    <span className="text-xs text-[#a89070] line-through">{formatKES(item.originalPrice)}</span>
-                  )}
+                  <span className="font-bold text-[#3d2c1e] dark:text-[#faf8f5]">${item.price.toFixed(2)}</span>
                 </div>
                 <Button
                   disabled={!item.inStock}

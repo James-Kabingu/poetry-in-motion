@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useMemo, Suspense, useRef } from "react"
+import { useState, useMemo, useEffect, Suspense, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -44,6 +44,17 @@ function ShopContent() {
   const [searchQuery, setSearchQuery] = useState("")
   const [showFilters, setShowFilters] = useState(false)
   const [favorites, setFavorites] = useState<string[]>([])
+  const [favoritesLoaded, setFavoritesLoaded] = useState(false)
+
+  useEffect(() => {
+    fetch("/api/favorites")
+      .then((res) => (res.status === 401 ? { success: false, data: [] } : res.json()))
+      .then((json) => {
+        if (json.success) setFavorites(json.data)
+      })
+      .catch(() => {})
+      .finally(() => setFavoritesLoaded(true))
+  }, [])
   const [addedId, setAddedId] = useState<string | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -57,8 +68,22 @@ function ShopContent() {
     })
   }, [selectedCategory, selectedPrice, selectedCreator, searchQuery])
 
-  const toggleFavorite = (productId: string) => {
-    setFavorites((prev) => (prev.includes(productId) ? prev.filter((id) => id !== productId) : [...prev, productId]))
+  const toggleFavorite = async (productId: string) => {
+    const isFav = favorites.includes(productId)
+    setFavorites((prev) => (isFav ? prev.filter((id) => id !== productId) : [...prev, productId])) // optimistic
+    try {
+      const res = await fetch("/api/favorites", {
+        method: isFav ? "DELETE" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId }),
+      })
+      if (res.status === 401) throw new Error()
+      const json = await res.json()
+      if (json.success) setFavorites(json.data)
+    } catch {
+      // revert on failure (includes not-logged-in)
+      setFavorites((prev) => (isFav ? [...prev, productId] : prev.filter((id) => id !== productId)))
+    }
   }
 
   const handleQuickAdd = (e: React.MouseEvent, product: typeof products[number]) => {
