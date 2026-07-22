@@ -17,7 +17,12 @@ const navItems = [
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+    } catch {
+      // proceed with client-side cleanup even if the request fails
+    }
     localStorage.removeItem("pim-profile")
     localStorage.removeItem("pim-settings")
     router.push("/")
