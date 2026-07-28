@@ -13,7 +13,9 @@ interface WebVitalsMetric {
 }
 
 export const reportWebVitals = (metric: WebVitalsMetric) => {
-  console.log("[Performance]", metric.name, metric.value)
+  if (process.env.NODE_ENV === "development") {
+    console.log("[Performance]", metric.name, metric.value)
+  }
 
   // Send to analytics service
   if (typeof window !== "undefined" && window.gtag) {

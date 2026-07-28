@@ -17,7 +17,9 @@ export const trackEvent = (eventName: string, userId?: string, properties?: Reco
     timestamp: new Date(),
   }
   analyticsEvents.push(event)
-  console.log("[Analytics]", eventName, properties)
+  if (process.env.NODE_ENV === "development") {
+    console.log("[Analytics]", eventName, properties)
+  }
 }
 
 export const getAnalytics = () => {

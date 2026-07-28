@@ -77,10 +77,21 @@ export const orders = pgTable("orders", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   status: text("status").notNull().default("pending"),
   totalCents: integer("total_cents").notNull(),
-  currency: text("currency").notNull().default("KES"),
+  currency: text("currency").notNull().default("USD"),
   addressId: uuid("address_id").references(() => addresses.id, { onDelete: "set null" }),
+  shippingAddress: jsonb("shipping_address").$type<{
+    fullName: string
+    phone: string
+    email: string
+    county: string
+    town: string
+    street?: string
+    building?: string
+  }>(),
+  paymentMethod: text("payment_method"),
   mpesaReceiptNumber: text("mpesa_receipt_number"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 })
 
 export const orderItems = pgTable("order_items", {

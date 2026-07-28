@@ -12,11 +12,14 @@ type Step = "address" | "payment" | "success"
 type PaymentMethod = "mpesa" | "card"
 
 export default function CheckoutPage() {
-  const { items, totalItems, totalPrice, clearCart } = useCart()
+  const { items, totalItems, totalPrice, clearCart, refreshCart } = useCart()
   const [step, setStep] = useState<Step>("address")
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("mpesa")
   const [mpesaLoading, setMpesaLoading] = useState(false)
   const [mpesaSent, setMpesaSent] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null)
 
   const shipping = totalPrice >= 50 ? 0 : 5
   const total = totalPrice + shipping
@@ -43,23 +46,56 @@ export default function CheckoutPage() {
     setStep("payment")
   }
 
+  const placeOrder = async (): Promise<boolean> => {
+    setSubmitError(null)
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ shippingAddress: address, paymentMethod }),
+      })
+
+      if (res.status === 401) {
+        setSubmitError("Please sign in to place an order.")
+        return false
+      }
+
+      const json = await res.json()
+      if (!res.ok || !json.success) {
+        setSubmitError(json.error ?? "Could not place your order. Please try again.")
+        return false
+      }
+
+      setPlacedOrderId(json.data.id)
+      clearCart()
+      return true
+    } catch {
+      setSubmitError("Network error — please check your connection and try again.")
+      return false
+    }
+  }
+
   const handleMpesaPay = () => {
     setMpesaLoading(true)
     setTimeout(() => {
       setMpesaLoading(false)
       setMpesaSent(true)
     }, 2000)
-    setTimeout(() => {
+    setTimeout(async () => {
       setMpesaSent(false)
-      clearCart()
-      setStep("success")
+      setSubmitting(true)
+      const ok = await placeOrder()
+      setSubmitting(false)
+      if (ok) setStep("success")
     }, 5000)
   }
 
-  const handleCardPay = () => {
+  const handleCardPay = async () => {
     if (!card.number || !card.name || !card.expiry || !card.cvv) return
-    clearCart()
-    setStep("success")
+    setSubmitting(true)
+    const ok = await placeOrder()
+    setSubmitting(false)
+    if (ok) setStep("success")
   }
 
   if (items.length === 0 && step !== "success") {
@@ -87,7 +123,9 @@ export default function CheckoutPage() {
             Your order has been confirmed. You will receive a confirmation on {address.phone || "your phone"}.
           </p>
           <div className="space-y-3">
-            <Link href="/account/orders"><Button size="lg" className="w-full">Track My Order</Button></Link>
+            <Link href={placedOrderId ? `/account/orders/${placedOrderId}` : "/account/orders"}>
+              <Button size="lg" className="w-full">Track My Order</Button>
+            </Link>
             <Link href="/shop"><Button size="lg" variant="outline" className="w-full bg-transparent">Continue Shopping</Button></Link>
           </div>
         </div>
@@ -98,7 +136,7 @@ export default function CheckoutPage() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <div className="border-b border-border bg-card/50 sticky top-0 z-40">
+      <div className="border-b border-border bg-card/50 sticky top-16 z-40">
         <div className="mx-auto max-w-7xl px-4 py-4 lg:px-8 flex items-center justify-between">
           <NavLogo size="sm" />
           <h1 className="font-bold text-foreground">Checkout</h1>
@@ -222,6 +260,12 @@ export default function CheckoutPage() {
               <Card className="p-6">
                 <h2 className="font-bold text-foreground text-lg mb-6">Payment Method</h2>
 
+                {submitError && (
+                  <div className="mb-4 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive">
+                    {submitError}
+                  </div>
+                )}
+
                 {/* Toggle */}
                 <div className="grid grid-cols-2 gap-3 mb-6">
                   <button
@@ -266,9 +310,15 @@ export default function CheckoutPage() {
                       size="lg"
                       className="w-full bg-green-600 hover:bg-green-700 text-white"
                       onClick={handleMpesaPay}
-                      disabled={mpesaLoading || mpesaSent}
+                      disabled={mpesaLoading || mpesaSent || submitting}
                     >
-                      {mpesaLoading ? "Sending prompt..." : mpesaSent ? "Waiting for PIN..." : `Pay KES ${(total * 130).toFixed(0)}`}
+                      {mpesaLoading
+                        ? "Sending prompt..."
+                        : mpesaSent
+                          ? "Waiting for PIN..."
+                          : submitting
+                            ? "Placing order..."
+                            : `Pay KES ${(total * 130).toFixed(0)}`}
                     </Button>
                   </div>
                 )}
@@ -322,9 +372,9 @@ export default function CheckoutPage() {
                       size="lg"
                       className="w-full"
                       onClick={handleCardPay}
-                      disabled={!card.number || !card.name || !card.expiry || !card.cvv}
+                      disabled={!card.number || !card.name || !card.expiry || !card.cvv || submitting}
                     >
-                      Pay ${total.toFixed(2)}
+                      {submitting ? "Placing order..." : `Pay $${total.toFixed(2)}`}
                     </Button>
                   </div>
                 )}

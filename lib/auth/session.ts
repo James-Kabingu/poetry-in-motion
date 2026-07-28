@@ -36,6 +36,17 @@ export async function getSession(): Promise<{ userId: string } | null> {
   }
 }
 
+// Middleware-safe verification: does not use next/headers cookies(),
+// so it can run in the Edge runtime. Takes the raw token string.
+export async function verifySessionToken(token: string): Promise<{ userId: string } | null> {
+  try {
+    const { payload } = await jwtVerify(token, secret)
+    return { userId: payload.userId as string }
+  } catch {
+    return null
+  }
+}
+
 export async function destroySession() {
   const cookieStore = await cookies()
   cookieStore.delete(SESSION_COOKIE)
