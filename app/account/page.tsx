@@ -5,46 +5,106 @@ import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Camera, Mail, Phone, MapPin, Calendar, Edit2, Save, X, Trash2, LogOut, CheckCircle } from "lucide-react"
+import { Camera, Mail, Phone, Calendar, Edit2, Save, X, Trash2, LogOut, CheckCircle, Loader2 } from "lucide-react"
 
-const DEFAULT_PROFILE = {
-  name: "James Kabingu",
-  email: "james@example.com",
-  phone: "+254 700 000 000",
-  location: "Nairobi, Kenya",
-  dob: "",
-  styleTags: ["Minimal", "Earth tones", "Streetwear", "Afro-fusion", "Casual chic"],
+interface Profile {
+  name: string
+  email: string
+  phone: string
+  dob: string
+  styleTags: string[]
+  createdAt: string
+}
+
+function formatMemberSince(iso: string) {
+  return new Date(iso).toLocaleDateString("en-US", { year: "numeric", month: "long" })
 }
 
 export default function AccountPage() {
   const router = useRouter()
-  const [profile, setProfile] = useState(DEFAULT_PROFILE)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(DEFAULT_PROFILE)
+  const [draft, setDraft] = useState<Profile | null>(null)
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState("")
 
   useEffect(() => {
-    const stored = localStorage.getItem("pim-profile")
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      setProfile(parsed)
-      setDraft(parsed)
+    let cancelled = false
+
+    async function load() {
+      try {
+        const res = await fetch("/api/auth/me")
+        if (res.status === 401) {
+          router.push("/auth/login")
+          return
+        }
+        if (!res.ok) throw new Error("Failed to load profile")
+        const json = await res.json()
+        const u = json.user
+        const loaded: Profile = {
+          name: u.name || "",
+          email: u.email,
+          phone: u.phone || "",
+          dob: u.dob || "",
+          styleTags: u.stylePreferences || [],
+          createdAt: u.createdAt,
+        }
+        if (!cancelled) {
+          setProfile(loaded)
+          setDraft(loaded)
+        }
+      } catch (err) {
+        if (!cancelled) setError("Couldn't load your profile. Please try again.")
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
     }
-  }, [])
+
+    load()
+    return () => {
+      cancelled = true
+    }
+  }, [router])
 
   const handleEdit = () => {
     setDraft(profile)
     setEditing(true)
   }
 
-  const handleSave = () => {
-    setProfile(draft)
-    localStorage.setItem("pim-profile", JSON.stringify(draft))
-    setEditing(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 2500)
+  const handleSave = async () => {
+    if (!draft || !profile) return
+    setSaving(true)
+    try {
+      const requests: Promise<Response>[] = [
+        fetch("/api/auth/me", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: draft.name, phone: draft.phone, dob: draft.dob }),
+        }),
+      ]
+      if (JSON.stringify(draft.styleTags) !== JSON.stringify(profile.styleTags)) {
+        requests.push(
+          fetch("/api/style-profile", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ stylePreferences: draft.styleTags }),
+          }),
+        )
+      }
+      await Promise.all(requests)
+      setProfile(draft)
+      setEditing(false)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      setError("Couldn't save your changes. Please try again.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleCancel = () => {
@@ -52,21 +112,32 @@ export default function AccountPage() {
     setEditing(false)
   }
 
-  const handleSignOut = () => {
-    localStorage.removeItem("pim-profile")
-    localStorage.removeItem("pim-settings")
-    router.push("/")
-  }
-
-  const handleDeleteAccount = () => {
-    if (deleteConfirm.toLowerCase() !== "delete") return
-    localStorage.clear()
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" })
+    } catch {
+      // proceed regardless
+    }
     router.push("/")
   }
 
   const removeTag = (tag: string) => {
-    setDraft((prev) => ({ ...prev, styleTags: prev.styleTags.filter((t) => t !== tag) }))
+    setDraft((prev) => (prev ? { ...prev, styleTags: prev.styleTags.filter((t) => t !== tag) } : prev))
   }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-[#c9a84c]" />
+      </div>
+    )
+  }
+
+  if (error && !profile) {
+    return <p className="text-[#1a1108] dark:text-[#faf8f5]">{error}</p>
+  }
+
+  if (!profile || !draft) return null
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,11 +153,11 @@ export default function AccountPage() {
           )}
           {editing ? (
             <>
-              <Button onClick={handleCancel} variant="outline" size="sm" className="gap-2 rounded-xl border-[#e8e0d4] dark:border-[#2a1f14] bg-transparent text-sm">
+              <Button onClick={handleCancel} variant="outline" size="sm" className="gap-2 rounded-xl border-[#e8e0d4] dark:border-[#2a1f14] bg-transparent text-sm" disabled={saving}>
                 <X className="h-3.5 w-3.5" /> Cancel
               </Button>
-              <Button onClick={handleSave} size="sm" className="gap-2 rounded-xl bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black text-sm">
-                <Save className="h-3.5 w-3.5" /> Save
+              <Button onClick={handleSave} size="sm" className="gap-2 rounded-xl bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black text-sm" disabled={saving}>
+                {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />} Save
               </Button>
             </>
           ) : (
@@ -120,18 +191,25 @@ export default function AccountPage() {
               className="text-xl font-bold text-[#1a1108] dark:text-[#faf8f5] bg-transparent border-b-2 border-[#c9a84c] focus:outline-none w-full max-w-xs mb-1"
             />
           ) : (
-            <h2 className="text-xl font-bold text-[#1a1108] dark:text-[#faf8f5]">{profile.name}</h2>
+            <h2 className="text-xl font-bold text-[#1a1108] dark:text-[#faf8f5]">{profile.name || "Not set"}</h2>
           )}
-          <p className="text-sm text-[#a89070]">Member since June 2025</p>
+          <p className="text-sm text-[#a89070]">Member since {formatMemberSince(profile.createdAt)}</p>
         </div>
       </div>
 
       {/* Info grid */}
       <div className="grid sm:grid-cols-2 gap-4">
+        <div className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] p-5 flex items-start gap-4">
+          <div className="h-10 w-10 rounded-xl bg-[#c9a84c]/10 flex items-center justify-center flex-shrink-0">
+            <Mail className="h-4 w-4 text-[#c9a84c]" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-[#a89070] mb-1">Email address</p>
+            <p className="text-sm font-medium text-[#1a1108] dark:text-[#faf8f5]">{profile.email}</p>
+          </div>
+        </div>
         {[
-          { icon: Mail, label: "Email address", field: "email" as const, type: "email" },
           { icon: Phone, label: "Phone number", field: "phone" as const, type: "tel" },
-          { icon: MapPin, label: "Location", field: "location" as const, type: "text" },
           { icon: Calendar, label: "Date of birth", field: "dob" as const, type: "date" },
         ].map((item) => {
           const Icon = item.icon
@@ -167,32 +245,32 @@ export default function AccountPage() {
           <h3 className="font-semibold text-[#1a1108] dark:text-[#faf8f5]">Style Profile</h3>
           <Link href="/quiz" className="text-xs text-[#c9a84c] hover:underline">Retake quiz</Link>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {(editing ? draft.styleTags : profile.styleTags).map((tag) => (
-            <span key={tag} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#c9a84c]/10 text-xs font-medium text-[#3d2c1e] dark:text-[#c9a84c] border border-[#c9a84c]/20">
-              {tag}
-              {editing && (
-                <button onClick={() => removeTag(tag)} className="hover:text-red-500 transition">
-                  <X className="h-3 w-3" />
-                </button>
-              )}
-            </span>
-          ))}
-        </div>
+        {(editing ? draft.styleTags : profile.styleTags).length === 0 ? (
+          <p className="text-sm text-[#a89070]">No style tags yet — take the quiz to build your profile.</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(editing ? draft.styleTags : profile.styleTags).map((tag) => (
+              <span key={tag} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#c9a84c]/10 text-xs font-medium text-[#3d2c1e] dark:text-[#c9a84c] border border-[#c9a84c]/20">
+                {tag}
+                {editing && (
+                  <button onClick={() => removeTag(tag)} className="hover:text-red-500 transition">
+                    <X className="h-3 w-3" />
+                  </button>
+                )}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
-        {[
-          { value: "12", label: "Orders", href: "/account/orders" },
-          { value: "3", label: "Wishlist", href: "/account/wishlist" },
-          { value: "3", label: "Reviews", href: "#" },
-        ].map((stat) => (
-          <Link key={stat.label} href={stat.href} className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] p-5 text-center hover:border-[#c9a84c]/40 transition">
-            <p className="text-2xl font-bold text-[#c9a84c]">{stat.value}</p>
-            <p className="text-xs text-[#a89070] mt-1">{stat.label}</p>
-          </Link>
-        ))}
+      {/* Quick links */}
+      <div className="grid grid-cols-2 gap-4">
+        <Link href="/account/orders" className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] p-5 text-center hover:border-[#c9a84c]/40 transition">
+          <p className="text-sm font-medium text-[#3d2c1e] dark:text-[#faf8f5]">Orders</p>
+        </Link>
+        <Link href="/account/wishlist" className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] p-5 text-center hover:border-[#c9a84c]/40 transition">
+          <p className="text-sm font-medium text-[#3d2c1e] dark:text-[#faf8f5]">Wishlist</p>
+        </Link>
       </div>
 
       {/* Account actions */}
@@ -219,28 +297,20 @@ export default function AccountPage() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center px-4">
           <div className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] p-6 max-w-sm w-full shadow-2xl">
             <h3 className="font-bold text-[#1a1108] dark:text-[#faf8f5] mb-2">Delete Account</h3>
-            <p className="text-sm text-[#a89070] mb-4">This action is permanent and cannot be undone. Type <strong>delete</strong> below to confirm.</p>
-            <input
-              type="text"
-              value={deleteConfirm}
-              onChange={(e) => setDeleteConfirm(e.target.value)}
-              placeholder="Type delete to confirm"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-[#e8e0d4] dark:border-[#2a1f14] bg-transparent text-[#1a1108] dark:text-[#faf8f5] focus:outline-none focus:border-red-400 mb-4"
-            />
+            <p className="text-sm text-[#a89070] mb-4">
+              Account deletion isn't available yet — there's no backend support for it. Contact support if you need
+              your data removed.
+            </p>
             <div className="flex gap-3">
               <Button
                 variant="outline"
                 className="flex-1 bg-transparent border-[#e8e0d4] dark:border-[#2a1f14]"
                 onClick={() => { setShowDeleteModal(false); setDeleteConfirm("") }}
               >
-                Cancel
+                Close
               </Button>
-              <Button
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white"
-                disabled={deleteConfirm.toLowerCase() !== "delete"}
-                onClick={handleDeleteAccount}
-              >
-                Delete
+              <Button asChild className="flex-1 bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black">
+                <Link href="/support">Contact Support</Link>
               </Button>
             </div>
           </div>
