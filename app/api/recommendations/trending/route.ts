@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
       let trendScore = 0
 
       // Recent products score higher
-      const daysSinceCreated = Math.floor((Date.now() - product.createdAt.getTime()) / (1000 * 60 * 60 * 24))
+      const daysSinceCreated = Math.floor((Date.now() - (product.createdAt ?? new Date()).getTime()) / (1000 * 60 * 60 * 24))
       trendScore += Math.max(50 - daysSinceCreated, 0)
 
       // High review velocity

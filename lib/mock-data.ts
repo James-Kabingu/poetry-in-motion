@@ -1,6 +1,7 @@
 // Mock data for development - easily replaceable with real database
 
-import type { User, Product, Order, Creator, Collection } from "./types"
+import type { User, Order, Creator, Collection } from "./types"
+import type { Product } from "./products"
 
 export const mockUsers: Record<string, User> = {
   "user-1": {

@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Overlapping colors
-      const colorOverlap = product.colors.filter((c) => baseProduct.colors.includes(c)).length
+      const colorOverlap = (product.colors ?? []).filter((c) => (baseProduct.colors ?? []).includes(c)).length
       similarityScore += colorOverlap * 10
 
       // Similar price range (within 30%)

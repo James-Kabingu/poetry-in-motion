@@ -28,6 +28,14 @@ export interface Product {
   aiInsight?: string
   creatorId?: string  // references Creator.id in lib/creators.ts
   inStock: boolean
+  originalPrice?: number
+  isPreOwned?: boolean
+  sustainability?: {
+    carbonFootprint: number
+    waterUsed: number
+    materials: string[]
+  }
+  createdAt?: Date
 }
 
 export const products: Product[] = [

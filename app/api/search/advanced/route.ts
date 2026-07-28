@@ -21,7 +21,7 @@ export async function GET(request: Request) {
         const lowerQuery = query.toLowerCase()
 
         if (product.name.toLowerCase().includes(lowerQuery)) score += 10
-        if (product.description.toLowerCase().includes(lowerQuery)) score += 5
+        if ((product.description ?? "").toLowerCase().includes(lowerQuery)) score += 5
         if (product.category.toLowerCase().includes(lowerQuery)) score += 3
 
         return { product, score }
@@ -41,12 +41,12 @@ export async function GET(request: Request) {
 
   // Color filter
   if (colors.length > 0) {
-    results = results.filter((p) => colors.some((c) => p.colors.includes(c)))
+    results = results.filter((p) => colors.some((c) => (p.colors ?? []).includes(c)))
   }
 
   // Size filter
   if (sizes.length > 0) {
-    results = results.filter((p) => sizes.some((s) => p.sizes.includes(s)))
+    results = results.filter((p) => sizes.some((s) => (p.sizes ?? []).includes(s)))
   }
 
   // Sorting
@@ -61,7 +61,7 @@ export async function GET(request: Request) {
       results.sort((a, b) => b.rating - a.rating)
       break
     case "newest":
-      results.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      results.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime())
       break
     case "trending":
       results.sort((a, b) => b.reviews - a.reviews)

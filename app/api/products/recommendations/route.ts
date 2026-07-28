@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
       // Match by favorite colors
       if (styleProfile.favoriteColors) {
-        const colorMatch = product.colors.some((color) => styleProfile.favoriteColors.includes(color))
+        const colorMatch = (product.colors ?? []).some((color) => styleProfile.favoriteColors.includes(color))
         if (colorMatch) score += 25
       }
 

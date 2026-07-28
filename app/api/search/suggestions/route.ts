@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     if (product.category.toLowerCase().includes(lowerQuery)) {
       suggestions.add(product.category)
     }
-    product.colors.forEach((color) => {
+    (product.colors ?? []).forEach((color) => {
       if (color.toLowerCase().includes(lowerQuery)) {
         suggestions.add(color)
       }

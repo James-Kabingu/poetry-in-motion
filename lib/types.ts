@@ -15,30 +15,6 @@ export interface User {
   updatedAt: Date
 }
 
-export interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  originalPrice?: number
-  image: string
-  images?: string[]
-  category: string
-  colors: string[]
-  sizes: string[]
-  rating: number
-  reviews: number
-  inStock: boolean
-  creatorId?: string
-  isPreOwned?: boolean
-  sustainability?: {
-    carbonFootprint: number
-    waterUsed: number
-    materials: string[]
-  }
-  createdAt: Date
-}
-
 export interface Order {
   id: string
   userId: string
