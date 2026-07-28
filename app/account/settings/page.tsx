@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Bell, Lock, ShieldCheck, MoonStar, Globe2, Smartphone, Check } from "lucide-react"
+import { Bell, Lock, ShieldCheck, MoonStar, Globe2, Smartphone, Check, Loader2 } from "lucide-react"
 
-const defaultProfile = {
-  name: "James Kabingu",
-  email: "james@example.com",
-  phone: "+254 700 000 000",
+interface Profile {
+  name: string
+  email: string
+  phone: string
 }
 
 const defaultPreferences = {
@@ -29,49 +29,117 @@ const settings = [
 ]
 
 export default function SettingsPage() {
-  const [profile, setProfile] = useState(defaultProfile)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [preferences, setPreferences] = useState(defaultPreferences)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saveMessage, setSaveMessage] = useState<string | null>(null)
 
   useEffect(() => {
-    const saved = localStorage.getItem("pim-settings")
-    if (saved) {
-      const parsed = JSON.parse(saved)
-      setProfile(parsed.profile ?? defaultProfile)
-      setPreferences(parsed.preferences ?? defaultPreferences)
+    let cancelled = false
+
+    async function load() {
+      try {
+        const res = await fetch("/api/auth/me")
+        if (res.ok) {
+          const json = await res.json()
+          if (!cancelled) {
+            setProfile({ name: json.user.name || "", email: json.user.email, phone: json.user.phone || "" })
+          }
+        }
+      } catch {
+        // profile section will just show empty fields
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+
+      // Notification/theme preferences have no backend table yet — these
+      // stay client-side (localStorage) intentionally, not as a shortcut.
+      const saved = localStorage.getItem("pim-preferences")
+      if (saved && !cancelled) {
+        try {
+          setPreferences({ ...defaultPreferences, ...JSON.parse(saved) })
+        } catch {
+          // ignore malformed local data
+        }
+      }
+    }
+
+    load()
+    return () => {
+      cancelled = true
     }
   }, [])
 
-  const saveSettings = () => {
-    localStorage.setItem("pim-settings", JSON.stringify({ profile, preferences }))
-    alert("Settings saved")
+  const saveSettings = async () => {
+    if (!profile) return
+    setSaving(true)
+    setSaveMessage(null)
+    try {
+      await fetch("/api/auth/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: profile.name, phone: profile.phone }),
+      })
+      localStorage.setItem("pim-preferences", JSON.stringify(preferences))
+      setSaveMessage("Settings saved")
+    } catch {
+      setSaveMessage("Couldn't save — please try again")
+    } finally {
+      setSaving(false)
+      setTimeout(() => setSaveMessage(null), 2500)
+    }
+  }
+
+  if (loading || !profile) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-[#c9a84c]" />
+      </div>
+    )
   }
 
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-[#1a1108] dark:text-[#faf8f5]">Settings</h1>
-        <Button onClick={saveSettings} className="rounded-xl bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black">
-          Save changes
-        </Button>
+        <div className="flex items-center gap-3">
+          {saveMessage && <span className="text-sm text-[#a89070]">{saveMessage}</span>}
+          <Button onClick={saveSettings} disabled={saving} className="rounded-xl bg-[#3d2c1e] text-white hover:bg-[#2a1f14] dark:bg-[#c9a84c] dark:text-black gap-2">
+            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+            Save changes
+          </Button>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-6">
         <div className="bg-white dark:bg-[#1a1108] rounded-2xl border border-[#e8e0d4] dark:border-[#2a1f14] p-6 space-y-5 h-fit">
           <h2 className="font-semibold text-[#1a1108] dark:text-[#faf8f5]">Account</h2>
-          {[
-            ["name", "Full name"],
-            ["email", "Email address"],
-            ["phone", "Phone number"],
-          ].map(([field, label]) => (
-            <div key={field}>
-              <label className="text-xs uppercase tracking-wider text-[#a89070] mb-2 block">{label}</label>
-              <input
-                value={profile[field as keyof typeof profile]}
-                onChange={(e) => setProfile((prev) => ({ ...prev, [field]: e.target.value }))}
-                className="w-full rounded-xl border border-[#e8e0d4] dark:border-[#2a1f14] bg-transparent px-3 py-2 text-sm text-[#1a1108] dark:text-[#faf8f5] placeholder:text-[#a89070]"
-              />
-            </div>
-          ))}
+
+          <div>
+            <label className="text-xs uppercase tracking-wider text-[#a89070] mb-2 block">Full name</label>
+            <input
+              value={profile.name}
+              onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+              className="w-full rounded-xl border border-[#e8e0d4] dark:border-[#2a1f14] bg-transparent px-3 py-2 text-sm text-[#1a1108] dark:text-[#faf8f5] placeholder:text-[#a89070]"
+            />
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-wider text-[#a89070] mb-2 block">Email address</label>
+            <input
+              value={profile.email}
+              disabled
+              className="w-full rounded-xl border border-[#e8e0d4] dark:border-[#2a1f14] bg-[#faf8f5] dark:bg-[#0e0a06] px-3 py-2 text-sm text-[#a89070]"
+            />
+          </div>
+          <div>
+            <label className="text-xs uppercase tracking-wider text-[#a89070] mb-2 block">Phone number</label>
+            <input
+              value={profile.phone}
+              onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+              className="w-full rounded-xl border border-[#e8e0d4] dark:border-[#2a1f14] bg-transparent px-3 py-2 text-sm text-[#1a1108] dark:text-[#faf8f5] placeholder:text-[#a89070]"
+            />
+          </div>
 
           <div>
             <p className="text-xs uppercase tracking-wider text-[#a89070] mb-2">Theme preference</p>
@@ -145,7 +213,10 @@ export default function SettingsPage() {
 
           <div className="bg-gradient-to-br from-[#c9a84c]/10 to-transparent rounded-2xl border border-[#c9a84c]/20 p-5 flex items-center gap-4">
             <Check className="h-5 w-5 text-[#c9a84c] flex-shrink-0" />
-            <p className="text-sm text-[#3d2c1e] dark:text-[#faf8f5]">Your settings are ready to be saved locally for the next prototype demo.</p>
+            <p className="text-sm text-[#3d2c1e] dark:text-[#faf8f5]">
+              Name and phone save to your account. Notification and theme preferences are saved on this device only
+              for now.
+            </p>
           </div>
         </div>
       </div>
