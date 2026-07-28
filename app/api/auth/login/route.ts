@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { users, profiles } from "@/lib/db/schema"
 import { createSession } from "@/lib/auth/session"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,6 +12,15 @@ export async function POST(request: NextRequest) {
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
+    }
+
+    const rateLimitKey = `login:${getClientIp(request)}:${email.toLowerCase()}`
+    const rateLimit = checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many login attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+      )
     }
 
     const userRows = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1)

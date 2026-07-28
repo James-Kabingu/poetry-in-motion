@@ -4,9 +4,19 @@ import bcrypt from "bcryptjs"
 import { db } from "@/lib/db"
 import { users, profiles } from "@/lib/db/schema"
 import { createSession } from "@/lib/auth/session"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 export async function POST(request: NextRequest) {
   try {
+    const rateLimitKey = `signup:${getClientIp(request)}`
+    const rateLimit = checkRateLimit(rateLimitKey, 5, 15 * 60 * 1000)
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: "Too many signup attempts. Please try again later." },
+        { status: 429, headers: { "Retry-After": String(rateLimit.retryAfterSeconds) } },
+      )
+    }
+
     const { email, password, name } = await request.json()
 
     if (!email || !password || !name) {
